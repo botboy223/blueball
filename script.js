@@ -1,4 +1,4 @@
-domReady(function () {
+document.addEventListener('DOMContentLoaded', function () {
     let productDetails = loadFromLocalStorage('productDetails') || {};
     let cart = [];
     let upiDetails = loadFromLocalStorage('upiDetails') || {};
@@ -126,8 +126,10 @@ domReady(function () {
                 const productDetail = productDetails[product.code];
                 productDetailsHtml += `
                     <li>
-                        ${productDetail.name} - ₹${productDetail.price} 
-                        Quantity: ${product.quantity}
+                        Product Name: ${productDetail.name} <br>
+                        Price: ₹${productDetail.price} <br>
+                        Quantity: ${product.quantity} <br>
+                        Total: ₹${productDetail.price * product.quantity}
                     </li>
                 `;
             });
@@ -136,12 +138,13 @@ domReady(function () {
 
             billDiv.innerHTML = `
                 <div>
-                    Bill ID: ${bill.billId}<br>
-                    Date: ${bill.billDate}<br>
-                    Total Amount: ₹${bill.totalAmount}<br>
-                    Products: ${productDetailsHtml}
+                    <strong>Bill ID:</strong> ${bill.billId} <br>
+                    <strong>Date:</strong> ${bill.billDate} <br>
+                    <strong>Total Amount:</strong> ₹${bill.totalAmount} <br>
+                    <strong>Products:</strong> ${productDetailsHtml}
                 </div>
                 <button onclick="deleteBill(${index})">Delete Bill</button>
+                <hr>
             `;
 
             billHistoryDiv.appendChild(billDiv);
@@ -149,34 +152,102 @@ domReady(function () {
     }
 
     window.deleteBill = function(index) {
-        billHistory.splice(index, 1);
-        saveToLocalStorage('billHistory', billHistory);
-        displayBillHistory();
+        if (confirm('Are you sure you want to delete this bill?')) {
+            billHistory.splice(index, 1);
+            saveToLocalStorage('billHistory', billHistory);
+            displayBillHistory();
+        }
     };
 
-    let html5QrcodeScannerOption1 = new Html5QrcodeScanner(
-        "my-qr-reader-option1",
-        {
-            fps: 30,
-            qrbox: { width: 250, height: 250 },
-            experimentalFeatures: {
-                useBarCodeDetectorIfSupported: true
-            }
-        }
-    );
-    html5QrcodeScannerOption1.render(onScanSuccessOption1);
+    function switchToOption1() {
+        document.querySelectorAll('.option').forEach(option => option.style.display = 'none');
+        document.getElementById('option1').style.display = 'block';
 
-    let html5QrcodeScannerOption2 = new Html5QrcodeScanner(
-        "my-qr-reader-option2",
-        {
-            fps: 30,
-            qrbox: { width: 250, height: 250 },
-            experimentalFeatures: {
-                useBarCodeDetectorIfSupported: true
-            }
-        }
-    );
-    html5QrcodeScannerOption2.render(onScanSuccessOption2);
+        const qrCodeReader = new Html5Qrcode("my-qr-reader-option1");
+        qrCodeReader.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccessOption1);
+    }
 
-    displayBillHistory();
+    function switchToOption2() {
+        document.querySelectorAll('.option').forEach(option => option.style.display = 'none');
+        document.getElementById('option2').style.display = 'block';
+
+        const qrCodeReader = new Html5Qrcode("my-qr-reader-option2");
+        qrCodeReader.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccessOption2);
+    }
+
+    function switchToOption3() {
+        document.querySelectorAll('.option').forEach(option => option.style.display = 'none');
+        document.getElementById('option3').style.display = 'block';
+
+        document.getElementById('qrForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const upiId = document.getElementById('upi_id').value;
+            const name = document.getElementById('name').value;
+            const note = document.getElementById('note').value;
+
+            upiDetails = { upiId, name, note };
+            saveToLocalStorage('upiDetails', upiDetails);
+            alert('UPI details saved.');
+
+            const qrData = `upi://pay?pa=${upiId}&pn=${name}&tn=${note}`;
+            const qrCode = new QRCodeStyling({
+                data: qrData,
+                width: 300,
+                height: 300,
+                image: "",
+                dotsOptions: { color: "#000", type: "rounded" },
+                backgroundOptions: { color: "#fff" },
+                imageOptions: { crossOrigin: "anonymous", margin: 20 }
+            });
+
+            qrCode.append(document.getElementById('qrCode'));
+        });
+    }
+
+    function switchToOption4() {
+        document.querySelectorAll('.option').forEach(option => option.style.display = 'none');
+        document.getElementById('option4').style.display = 'block';
+
+        document.getElementById('download-data').addEventListener('click', () => {
+            const dataStr = JSON.stringify({ productDetails, billHistory });
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'data.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        });
+
+        document.getElementById('upload-data').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const data = JSON.parse(e.target.result);
+                    productDetails = data.productDetails || {};
+                    billHistory = data.billHistory || [];
+                    saveToLocalStorage('productDetails', productDetails);
+                    saveToLocalStorage('billHistory', billHistory);
+                    alert('Data imported successfully.');
+                };
+                reader.readAsText(file);
+            }
+        });
+    }
+
+    function switchToOption5() {
+        document.querySelectorAll('.option').forEach(option => option.style.display = 'none');
+        document.getElementById('option5').style.display = 'block';
+        displayBillHistory();
+    }
+
+    function saveToLocalStorage(key, value) {
+        localStorage.setItem(key, JSON.stringify(value));
+    }
+
+    function loadFromLocalStorage(key) {
+        return JSON.parse(localStorage.getItem(key));
+    }
 });
