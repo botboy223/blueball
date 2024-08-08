@@ -175,7 +175,6 @@ domReady(function () {
         saveToLocalStorage('billHistory', billHistory);
 
         alert('Total Bill: ₹' + totalAmount);
-        displayBillHistory();
     });
 
     document.getElementById('qrForm').addEventListener('submit', function(e) {
@@ -291,6 +290,4 @@ domReady(function () {
         }
     );
     html5QrcodeScannerOption2.render(onScanSuccessOption2);
-
-    displayBillHistory();
 });
