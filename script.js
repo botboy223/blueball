@@ -135,27 +135,37 @@ domReady(function () {
         const productPrice = parseFloat(document.getElementById('product-price').value);
 
         if (barcode && productName && !isNaN(productPrice)) {
-            productDetails[barcode] = { name: productName, price: productPrice };
+            productDetails[barcode] = {
+                name: productName,
+                price: productPrice
+            };
             saveToLocalStorage('productDetails', productDetails);
-            alert('Product details saved.');
+            alert('Product saved successfully');
         } else {
-            alert('Please fill in all fields.');
+            alert('Please fill in all fields correctly.');
         }
     });
 
     document.getElementById('generate-bill').addEventListener('click', () => {
-        const totalAmount = document.getElementById('total').innerText.split('₹')[1];
-
-        if (!upiDetails.upiId || !upiDetails.name || !upiDetails.note) {
-            alert('Please set up your UPI details in the UPI QR Code section first.');
+        if (cart.length === 0) {
+            alert('Cart is empty');
             return;
         }
 
-        const upiUrl = `upi://pay?pa=${upiDetails.upiId}&pn=${upiDetails.name}&am=${totalAmount}&cu=INR&tn=${upiDetails.note}`;
+        const totalAmount = cart.reduce((sum, item) => {
+            return sum + productDetails[item.code].price * item.quantity;
+        }, 0);
+
+        const upiUrl = `upi://pay?pa=${upiDetails.upi_id}&pn=${upiDetails.name}&tn=${upiDetails.note}&am=${totalAmount}&cu=INR`;
+
+        const billId = Date.now().toString();
+        const billDate = new Date().toLocaleString();
+        billHistory.push({ billId, billDate, totalAmount, upiUrl, cart: [...cart] });
+        saveToLocalStorage('billHistory', billHistory);
 
         const qrCode = new QRCodeStyling({
-            width: 300,
-            height: 300,
+            width: 150,
+            height: 150,
             data: upiUrl,
             dotsOptions: {
                 color: "#000",
@@ -166,46 +176,37 @@ domReady(function () {
             }
         });
 
-        document.getElementById('bill-qr-code').innerHTML = "";
         qrCode.append(document.getElementById('bill-qr-code'));
 
-        const billId = Date.now().toString();
-        const billDate = new Date().toLocaleString();
-        billHistory.push({ billId, billDate, totalAmount, upiUrl });
-        saveToLocalStorage('billHistory', billHistory);
-
-        alert('Total Bill: ₹' + totalAmount);
-        displayBillHistory();
+        alert('Bill generated successfully');
+        cart = [];
+        displayCart();
     });
 
-    document.getElementById('qrForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        const upiId = document.getElementById('upi_id').value;
-        const name = document.getElementById('name').value;
-        const note = document.getElementById('note').value;
-
-        upiDetails = { upiId, name, note };
+    document.getElementById('qrForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+        upiDetails = {
+            upi_id: document.getElementById('upi_id').value,
+            name: document.getElementById('name').value,
+            note: document.getElementById('note').value,
+        };
         saveToLocalStorage('upiDetails', upiDetails);
-
-        alert('UPI details saved.');
+        alert('UPI details saved successfully');
     });
 
     document.getElementById('download-data').addEventListener('click', () => {
         const data = {
             productDetails,
-            cart,
+            billHistory,
             upiDetails,
-            billHistory
         };
+
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = 'data.json';
-        document.body.appendChild(a);
         a.click();
-        document.body.removeChild(a);
         URL.revokeObjectURL(url);
     });
 
@@ -213,16 +214,17 @@ domReady(function () {
         const file = event.target.files[0];
         if (file) {
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 const data = JSON.parse(e.target.result);
-                if (data.productDetails) productDetails = data.productDetails;
-                if (data.cart) cart = data.cart;
-                if (data.upiDetails) upiDetails = data.upiDetails;
-                if (data.billHistory) billHistory = data.billHistory;
+                productDetails = data.productDetails || {};
+                billHistory = data.billHistory || [];
+                upiDetails = data.upiDetails || {};
+
                 saveToLocalStorage('productDetails', productDetails);
-                saveToLocalStorage('upiDetails', upiDetails);
                 saveToLocalStorage('billHistory', billHistory);
-                alert('Data imported successfully.');
+                saveToLocalStorage('upiDetails', upiDetails);
+
+                alert('Data imported successfully');
             };
             reader.readAsText(file);
         }
@@ -234,11 +236,21 @@ domReady(function () {
 
         billHistory.forEach((bill, index) => {
             const billDiv = document.createElement('div');
+            
+            // Create a list of products in the bill
+            let productList = '';
+            bill.cart.forEach(item => {
+                const product = productDetails[item.code];
+                productList += `<li>${product.name} - ₹${product.price} x ${item.quantity}</li>`;
+            });
+
             billDiv.innerHTML = `
                 <div>
-                    Bill ID: ${bill.billId}<br>
-                    Date: ${bill.billDate}<br>
-                    Total Amount: ₹${bill.totalAmount}
+                    <strong>Bill ID:</strong> ${bill.billId}<br>
+                    <strong>Date:</strong> ${bill.billDate}<br>
+                    <strong>Total Amount:</strong> ₹${bill.totalAmount}<br>
+                    <strong>Products:</strong>
+                    <ul>${productList}</ul>
                 </div>
                 <div id="bill-qr-code-${bill.billId}"></div>
                 <button onclick="deleteBill(${index})">Delete Bill</button>
@@ -262,35 +274,30 @@ domReady(function () {
         });
     }
 
-    window.deleteBill = function(index) {
+    function deleteBill(index) {
         billHistory.splice(index, 1);
         saveToLocalStorage('billHistory', billHistory);
         displayBillHistory();
-    };
+    }
 
-    let html5QrcodeScannerOption1 = new Html5QrcodeScanner(
-        "my-qr-reader-option1",
+    const html5QrCodeOption1 = new Html5Qrcode("my-qr-reader-option1");
+    const html5QrCodeOption2 = new Html5Qrcode("my-qr-reader-option2");
+
+    html5QrCodeOption1.start(
+        { facingMode: "environment" },
         {
-            fps: 30,
-            qrbox: { width: 250, height: 250 },
-            experimentalFeatures: {
-                useBarCodeDetectorIfSupported: true
-            }
-        }
+            fps: 10,    // Optional, frame per seconds for qr code scanning
+            qrbox: 250  // Optional, if you want bounded box UI
+        },
+        onScanSuccessOption1
     );
-    html5QrcodeScannerOption1.render(onScanSuccessOption1);
 
-    let html5QrcodeScannerOption2 = new Html5QrcodeScanner(
-        "my-qr-reader-option2",
+    html5QrCodeOption2.start(
+        { facingMode: "environment" },
         {
-            fps: 30,
-            qrbox: { width: 250, height: 250 },
-            experimentalFeatures: {
-                useBarCodeDetectorIfSupported: true
-            }
-        }
+            fps: 10,
+            qrbox: 250
+        },
+        onScanSuccessOption2
     );
-    html5QrcodeScannerOption2.render(onScanSuccessOption2);
-
-    displayBillHistory();
 });
