@@ -231,48 +231,53 @@ domReady(function () {
     });
 
     function displayBillHistory() {
-        const billHistoryDiv = document.getElementById('bill-history');
-        billHistoryDiv.innerHTML = '';
+    const billHistoryDiv = document.getElementById('bill-history');
+    billHistoryDiv.innerHTML = '';
 
-        billHistory.forEach((bill, index) => {
-            const billDiv = document.createElement('div');
-            
-            // Create a list of products in the bill
-            let productList = '';
-            bill.cart.forEach(item => {
-                const product = productDetails[item.code];
+    billHistory.forEach((bill, index) => {
+        const billDiv = document.createElement('div');
+        
+        // Create a list of products in the bill
+        let productList = '';
+        bill.cart.forEach(item => {
+            const product = productDetails[item.code];
+            if (product) {
                 productList += `<li>${product.name} - ₹${product.price} x ${item.quantity}</li>`;
-            });
-
-            billDiv.innerHTML = `
-                <div>
-                    <strong>Bill ID:</strong> ${bill.billId}<br>
-                    <strong>Date:</strong> ${bill.billDate}<br>
-                    <strong>Total Amount:</strong> ₹${bill.totalAmount}<br>
-                    <strong>Products:</strong>
-                    <ul>${productList}</ul>
-                </div>
-                <div id="bill-qr-code-${bill.billId}"></div>
-                <button onclick="deleteBill(${index})">Delete Bill</button>
-            `;
-            billHistoryDiv.appendChild(billDiv);
-
-            const qrCode = new QRCodeStyling({
-                width: 150,
-                height: 150,
-                data: bill.upiUrl,
-                dotsOptions: {
-                    color: "#000",
-                    type: "rounded"
-                },
-                backgroundOptions: {
-                    color: "#fff",
-                }
-            });
-
-            qrCode.append(document.getElementById(`bill-qr-code-${bill.billId}`));
+            } else {
+                productList += `<li>Unknown Product - Code: ${item.code}</li>`;
+            }
         });
-    }
+
+        billDiv.innerHTML = `
+            <div>
+                <strong>Bill ID:</strong> ${bill.billId}<br>
+                <strong>Date:</strong> ${bill.billDate}<br>
+                <strong>Total Amount:</strong> ₹${bill.totalAmount}<br>
+                <strong>Products:</strong>
+                <ul>${productList}</ul>
+            </div>
+            <div id="bill-qr-code-${bill.billId}"></div>
+            <button onclick="deleteBill(${index})">Delete Bill</button>
+        `;
+        billHistoryDiv.appendChild(billDiv);
+
+        const qrCode = new QRCodeStyling({
+            width: 150,
+            height: 150,
+            data: bill.upiUrl,
+            dotsOptions: {
+                color: "#000",
+                type: "rounded"
+            },
+            backgroundOptions: {
+                color: "#fff",
+            }
+        });
+
+        qrCode.append(document.getElementById(`bill-qr-code-${bill.billId}`));
+    });
+}
+
 
     function deleteBill(index) {
         billHistory.splice(index, 1);
