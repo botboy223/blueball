@@ -3,121 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventory & Billing System</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-
-        .container {
-            max-width: 600px;
-            background-color: #ffffff;
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            text-align: center;
-            width: 100%;
-        }
-
-        .button-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            border: none;
-            background-color: #007bff;
-            color: white;
-            border-radius: 5px;
-            transition: background-color 0.3s;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        .option {
-            margin-top: 20px;
-        }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            margin-top: 10px;
-            text-align: left;
-        }
-
-        label {
-            margin-bottom: 5px;
-        }
-
-        input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
-        #cart div {
-            margin-top: 10px;
-        }
-
-        @media (max-width: 600px) {
-            .container {
-                padding: 10px;
-            }
-
-            .button-group {
-                flex-direction: column;
-            }
-
-            button {
-                width: 100%;
-            }
-        }
-
-        /* New styles for import/export functionality */
-        #option4 {
-            margin-top: 20px;
-        }
-
-        #upload-data {
-            margin-top: 10px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
+    <title>QR Code Scanner / Reader</title>
 </head>
 <body>
     <div class="container">
-        <h1>Inventory & Billing System</h1>
+        <h1>QR Code Scanner</h1>
         <div class="button-group">
-            <button onclick="switchToOption1()">Add Product</button>
-            <button onclick="switchToOption2()">Scan Product</button>
-            <button onclick="switchToOption3()">Generate Bill</button>
-            <button onclick="switchToOption4()">Manage Inventory</button>
-            <button onclick="switchToOption5()">Bill History</button>
-            <button onclick="switchToOption6()">UPI QR Code</button>
+            <button id="option1-button" onclick="switchToOption1()">Set Barcode Values</button>
+            <button id="option2-button" onclick="switchToOption2()">Generate Bill</button>
+            <button id="option3-button" onclick="switchToOption3()">UPI QR Code</button>
+            <button id="option4-button" onclick="switchToOption4()">Import/Export Data</button>
+            <button id="option5-button" onclick="switchToOption5()">Bill History</button>
         </div>
 
-        <!-- Option 1: Add Product -->
-        <div id="option1" class="option" style="display:none;">
-            <h2>Add Product</h2>
+        <div id="option1" class="option">
+            <div id="my-qr-reader-option1"></div>
             <div class="input-group">
                 <label for="barcode">Barcode:</label>
-                <input type="text" id="barcode">
+                <input type="text" id="barcode" readonly>
             </div>
             <div class="input-group">
                 <label for="product-name">Product Name:</label>
@@ -127,59 +31,51 @@
                 <label for="product-price">Product Price:</label>
                 <input type="number" id="product-price">
             </div>
-            <button id="save-barcode">Save Product</button>
-            <div id="reader-option1" style="margin-top: 20px;"></div>
+            <button id="save-barcode">Save</button>
         </div>
 
-        <!-- Option 2: Scan Product -->
-        <div id="option2" class="option" style="display:none;">
-            <h2>Scan Product</h2>
-            <div id="reader-option2"></div>
-            <div id="cart" style="margin-top: 20px;"></div>
-            <div id="total" style="margin-top: 10px;"></div>
+        <div id="option2" class="option" style="display: none;">
+            <div id="my-qr-reader-option2"></div>
+            <h2>Cart</h2>
+            <div id="cart"></div>
+            <div id="total">Total: ₹0</div>
+            <button id="generate-bill">Generate Bill</button>
+            <div id="bill-qr-code"></div>
         </div>
 
-        <!-- Option 3: Generate Bill -->
-        <div id="option3" class="option" style="display:none;">
-            <h2>Generate Bill</h2>
-            <div id="bill-qr-code" style="margin-top: 20px;"></div>
-            <button id="generate-bill" style="margin-top: 20px;">Generate UPI QR Code</button>
+        <div id="option3" class="option" style="display: none;">
+            <h2>UPI QR Code Generator</h2>
+            <form id="qrForm">
+                <div class="input-group">
+                    <label for="upi_id">UPI ID (e.g., 9545689031@paytm):</label>
+                    <input type="text" id="upi_id" name="upi_id" required>
+                </div>
+                <div class="input-group">
+                    <label for="name">Name (e.g., sikot):</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="input-group">
+                    <label for="note">Transaction Note (e.g., s):</label>
+                    <input type="text" id="note" name="note" required>
+                </div>
+                <button type="submit">Save UPI Details</button>
+            </form>
+            <div id="qrCode"></div>
         </div>
 
-        <!-- Option 4: Manage Inventory -->
-        <div id="option4" class="option" style="display:none;">
-            <h2>Manage Inventory</h2>
-            <div id="inventory"></div>
+        <div id="option4" class="option" style="display: none;">
+            <h2>Import/Export Data</h2>
+            <button id="download-data">Download Data</button>
+            <input type="file" id="upload-data" accept=".json">
         </div>
 
-        <!-- Option 5: Bill History -->
-        <div id="option5" class="option" style="display:none;">
+        <div id="option5" class="option" style="display: none;">
             <h2>Bill History</h2>
             <div id="bill-history"></div>
         </div>
-
-        <!-- Option 6: UPI QR Code -->
-        <div id="option6" class="option" style="display:none;">
-            <h2>UPI QR Code</h2>
-            <div class="input-group">
-                <label for="upi-id">UPI ID:</label>
-                <input type="text" id="upi-id">
-            </div>
-            <div class="input-group">
-                <label for="upi-name">Name:</label>
-                <input type="text" id="upi-name">
-            </div>
-            <div class="input-group">
-                <label for="upi-note">Transaction Note:</label>
-                <input type="text" id="upi-note">
-            </div>
-            <button id="save-upi">Save UPI Details</button>
-        </div>
     </div>
-
-    <!-- Include necessary scripts -->
-    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode-styling/lib/umd/index.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qr-code-styling/lib/qr-code-styling.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
