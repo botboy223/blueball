@@ -97,10 +97,10 @@ domReady(function () {
         cart.forEach((item, index) => {
             const product = productDetails[item.code];
             const itemDiv = document.createElement('div');
-            itemDiv.innerHTML = 
+            itemDiv.innerHTML = `
                 ${item.code} - ₹${product.price} - ${product.name} 
                 Quantity: <input type="number" value="${item.quantity}" min="1" data-index="${index}">
-            ;
+            `;
             cartDiv.appendChild(itemDiv);
         });
 
@@ -115,7 +115,7 @@ domReady(function () {
             total += product.price * item.quantity;
         });
 
-        document.getElementById('total').innerText = Total: ₹${total};
+        document.getElementById('total').innerText = `Total: ₹${total}`;
     }
 
     document.getElementById('cart').addEventListener('input', (event) => {
@@ -156,7 +156,7 @@ domReady(function () {
             return sum + productDetails[item.code].price * item.quantity;
         }, 0);
 
-        const upiUrl = upi://pay?pa=${upiDetails.upi_id}&pn=${upiDetails.name}&tn=${upiDetails.note}&am=${totalAmount}&cu=INR;
+        const upiUrl = `upi://pay?pa=${upiDetails.upi_id}&pn=${upiDetails.name}&tn=${upiDetails.note}&am=${totalAmount}&cu=INR`;
 
         const billId = Date.now().toString();
         const billDate = new Date().toLocaleString();
@@ -241,10 +241,10 @@ domReady(function () {
             let productList = '';
             bill.cart.forEach(item => {
                 const product = productDetails[item.code];
-                productList += <li>${product.name} - ₹${product.price} x ${item.quantity}</li>;
+                productList += `<li>${product.name} - ₹${product.price} x ${item.quantity}</li>`;
             });
 
-            billDiv.innerHTML = 
+            billDiv.innerHTML = `
                 <div>
                     <strong>Bill ID:</strong> ${bill.billId}<br>
                     <strong>Date:</strong> ${bill.billDate}<br>
@@ -254,7 +254,7 @@ domReady(function () {
                 </div>
                 <div id="bill-qr-code-${bill.billId}"></div>
                 <button onclick="deleteBill(${index})">Delete Bill</button>
-            ;
+            `;
             billHistoryDiv.appendChild(billDiv);
 
             const qrCode = new QRCodeStyling({
@@ -270,7 +270,7 @@ domReady(function () {
                 }
             });
 
-            qrCode.append(document.getElementById(bill-qr-code-${bill.billId}));
+            qrCode.append(document.getElementById(`bill-qr-code-${bill.billId}`));
         });
     }
 
@@ -300,7 +300,4 @@ domReady(function () {
         },
         onScanSuccessOption2
     );
-
-    // Load bill history when switching to option 5
-    switchToOption5();
 });
