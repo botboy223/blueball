@@ -21,7 +21,6 @@ function switchToOption1() {
     document.getElementById('option3').style.display = 'none';
     document.getElementById('option4').style.display = 'none';
     document.getElementById('option5').style.display = 'none';
-    document.getElementById('option6').style.display = 'none';
 }
 
 function switchToOption2() {
@@ -30,7 +29,6 @@ function switchToOption2() {
     document.getElementById('option3').style.display = 'none';
     document.getElementById('option4').style.display = 'none';
     document.getElementById('option5').style.display = 'none';
-    document.getElementById('option6').style.display = 'none';
 }
 
 function switchToOption3() {
@@ -39,7 +37,6 @@ function switchToOption3() {
     document.getElementById('option3').style.display = 'block';
     document.getElementById('option4').style.display = 'none';
     document.getElementById('option5').style.display = 'none';
-    document.getElementById('option6').style.display = 'none';
 }
 
 function switchToOption4() {
@@ -48,7 +45,6 @@ function switchToOption4() {
     document.getElementById('option3').style.display = 'none';
     document.getElementById('option4').style.display = 'block';
     document.getElementById('option5').style.display = 'none';
-    document.getElementById('option6').style.display = 'none';
 }
 
 function switchToOption5() {
@@ -57,16 +53,7 @@ function switchToOption5() {
     document.getElementById('option3').style.display = 'none';
     document.getElementById('option4').style.display = 'none';
     document.getElementById('option5').style.display = 'block';
-    document.getElementById('option6').style.display = 'none';
-}
-
-function switchToOption6() {
-    document.getElementById('option1').style.display = 'none';
-    document.getElementById('option2').style.display = 'none';
-    document.getElementById('option3').style.display = 'none';
-    document.getElementById('option4').style.display = 'none';
-    document.getElementById('option5').style.display = 'none';
-    document.getElementById('option6').style.display = 'block';
+    displayBillHistory();
 }
 
 domReady(function () {
@@ -182,26 +169,64 @@ domReady(function () {
         document.getElementById('bill-qr-code').innerHTML = "";
         qrCode.append(document.getElementById('bill-qr-code'));
 
-        saveBillHistory(totalAmount);
+        const billId = Date.now().toString();
+        const billDate = new Date().toLocaleString();
+        billHistory.push({ billId, billDate, totalAmount, upiUrl });
+        saveToLocalStorage('billHistory', billHistory);
+
         alert('Total Bill: ₹' + totalAmount);
     });
 
-    // Function to save bill history
-    function saveBillHistory(totalAmount) {
-        const billId = Date.now(); // Unique bill ID using timestamp
-        const date = new Date().toLocaleString(); // Current date and time
-        const billData = {
-            billId,
-            date,
-            totalAmount,
-            cart: [...cart],
-        };
-        billHistory.push(billData);
-        saveToLocalStorage('billHistory', billHistory);
-        alert('Bill saved to history.');
-    }
+    document.getElementById('qrForm').addEventListener('submit', function(e) {
+        e.preventDefault();
 
-    // Function to display bill history
+        const upiId = document.getElementById('upi_id').value;
+        const name = document.getElementById('name').value;
+        const note = document.getElementById('note').value;
+
+        upiDetails = { upiId, name, note };
+        saveToLocalStorage('upiDetails', upiDetails);
+
+        alert('UPI details saved.');
+    });
+
+    document.getElementById('download-data').addEventListener('click', () => {
+        const data = {
+            productDetails,
+            cart,
+            upiDetails,
+            billHistory
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'data.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('upload-data').addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = JSON.parse(e.target.result);
+                if (data.productDetails) productDetails = data.productDetails;
+                if (data.cart) cart = data.cart;
+                if (data.upiDetails) upiDetails = data.upiDetails;
+                if (data.billHistory) billHistory = data.billHistory;
+                saveToLocalStorage('productDetails', productDetails);
+                saveToLocalStorage('upiDetails', upiDetails);
+                saveToLocalStorage('billHistory', billHistory);
+                alert('Data imported successfully.');
+            };
+            reader.readAsText(file);
+        }
+    });
+
     function displayBillHistory() {
         const billHistoryDiv = document.getElementById('bill-history');
         billHistoryDiv.innerHTML = '';
@@ -209,100 +234,60 @@ domReady(function () {
         billHistory.forEach((bill, index) => {
             const billDiv = document.createElement('div');
             billDiv.innerHTML = `
-                <strong>Bill ID:</strong> ${bill.billId} <br>
-                <strong>Date:</strong> ${bill.date} <br>
-                <strong>Total:</strong> ₹${bill.totalAmount} <br>
+                <div>
+                    Bill ID: ${bill.billId}<br>
+                    Date: ${bill.billDate}<br>
+                    Total Amount: ₹${bill.totalAmount}
+                </div>
+                <div id="bill-qr-code-${bill.billId}"></div>
                 <button onclick="deleteBill(${index})">Delete Bill</button>
-                <hr>
             `;
             billHistoryDiv.appendChild(billDiv);
+
+            const qrCode = new QRCodeStyling({
+                width: 150,
+                height: 150,
+                data: bill.upiUrl,
+                dotsOptions: {
+                    color: "#000",
+                    type: "rounded"
+                },
+                backgroundOptions: {
+                    color: "#fff",
+                }
+            });
+
+            qrCode.append(document.getElementById(`bill-qr-code-${bill.billId}`));
         });
     }
 
-    // Function to delete a bill from history
-    function deleteBill(index) {
+    window.deleteBill = function(index) {
         billHistory.splice(index, 1);
         saveToLocalStorage('billHistory', billHistory);
         displayBillHistory();
-    }
+    };
 
-    // Function to display inventory
-    function displayInventory() {
-        const inventoryDiv = document.getElementById('inventory');
-        inventoryDiv.innerHTML = '';
-
-        Object.keys(productDetails).forEach(barcode => {
-            const product = productDetails[barcode];
-            const soldQuantity = billHistory.reduce((total, bill) => {
-                const productInBill = bill.cart.find(item => item.code === barcode);
-                return total + (productInBill ? productInBill.quantity : 0);
-            }, 0);
-            const totalQuantity = product.quantity || 0;
-            const remainingQuantity = totalQuantity - soldQuantity;
-
-            const productDiv = document.createElement('div');
-            productDiv.innerHTML = `
-                <strong>Barcode:</strong> ${barcode} <br>
-                <strong>Name:</strong> ${product.name} <br>
-                <strong>Price:</strong> ₹${product.price} <br>
-                <strong>Total Quantity:</strong> ${totalQuantity} <br>
-                <strong>Sold Quantity:</strong> ${soldQuantity} <br>
-                <strong>Remaining Quantity:</strong> ${remainingQuantity} <br>
-                <button onclick="editProduct('${barcode}')">Edit Product</button>
-                <hr>
-            `;
-            inventoryDiv.appendChild(productDiv);
-        });
-    }
-
-    // Function to edit product in inventory
-    function editProduct(barcode) {
-        const product = productDetails[barcode];
-        const newName = prompt("Enter new product name:", product.name);
-        const newPrice = parseFloat(prompt("Enter new product price:", product.price));
-        const newQuantity = parseInt(prompt("Enter new total quantity:", product.quantity || 0), 10);
-
-        if (newName && !isNaN(newPrice) && !isNaN(newQuantity)) {
-            productDetails[barcode] = { name: newName, price: newPrice, quantity: newQuantity };
-            saveToLocalStorage('productDetails', productDetails);
-            displayInventory();
-        } else {
-            alert('Invalid input.');
+    let html5QrcodeScannerOption1 = new Html5QrcodeScanner(
+        "my-qr-reader-option1",
+        {
+            fps: 30,
+            qrbox: { width: 250, height: 250 },
+            experimentalFeatures: {
+                useBarCodeDetectorIfSupported: true
+            }
         }
-    }
+    );
+    html5QrcodeScannerOption1.render(onScanSuccessOption1);
 
-    // UPI QR Code section
-    document.getElementById('save-upi').addEventListener('click', () => {
-        const upiId = document.getElementById('upi-id').value;
-        const name = document.getElementById('upi-name').value;
-        const note = document.getElementById('upi-note').value;
-
-        if (upiId && name && note) {
-            upiDetails = { upiId, name, note };
-            saveToLocalStorage('upiDetails', upiDetails);
-            alert('UPI details saved.');
-        } else {
-            alert('Please fill in all fields.');
+    let html5QrcodeScannerOption2 = new Html5QrcodeScanner(
+        "my-qr-reader-option2",
+        {
+            fps: 30,
+            qrbox: { width: 250, height: 250 },
+            experimentalFeatures: {
+                useBarCodeDetectorIfSupported: true
+            }
         }
-    });
-
-    // Initialize QR code readers
-    const html5QrCodeOption1 = new Html5Qrcode("reader-option1");
-    const html5QrCodeOption2 = new Html5Qrcode("reader-option2");
-
-    html5QrCodeOption1.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: 250 },
-        onScanSuccessOption1
     );
-
-    html5QrCodeOption2.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: 250 },
-        onScanSuccessOption2
-    );
-
-    // Call display functions on page load
-    displayBillHistory();
-    displayInventory();
+    html5QrcodeScannerOption2.render(onScanSuccessOption2);
 });
