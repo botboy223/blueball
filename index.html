@@ -10,15 +10,18 @@
     <div class="container">
         <h1>QR Code Scanner</h1>
         <div class="button-group">
-            <button id="option1-button" onclick="switchToOption1()">Set Barcode Values</button>
-            <button id="option2-button" onclick="switchToOption2()">Generate Bill</button>
-            <button id="option3-button" onclick="switchToOption3()">UPI QR Code</button>
-            <button id="option4-button" onclick="switchToOption4()">Import/Export Data</button>
-            <button id="option5-button" onclick="switchToOption5()">Bill History</button>
-            <button id="option6-button" onclick="switchToOption6()">Inventory</button>
+            <button id="more-button" onclick="toggleDropdown()">More</button>
+            <div id="dropdown" class="dropdown-content" style="display:none;">
+                <button onclick="switchToOption1()">Set Barcode Values</button>
+                <button onclick="switchToOption2()">Generate Bill</button>
+                <button onclick="switchToOption3()">UPI QR Code</button>
+                <button onclick="switchToOption4()">Import/Export Data</button>
+                <button onclick="switchToOption5()">Bill History</button>
+                <button onclick="switchToOption6()">Inventory</button>
+            </div>
         </div>
 
-        <div id="option1" class="option">
+        <div id="option1" class="option" style="display: none;">
             <div id="my-qr-reader-option1"></div>
             <div class="input-group">
                 <label for="barcode">Barcode:</label>
@@ -84,5 +87,11 @@
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdn.jsdelivr.net/npm/qr-code-styling/lib/qr-code-styling.js"></script>
     <script src="script.js"></script>
+    <script>
+        function toggleDropdown() {
+            const dropdown = document.getElementById('dropdown');
+            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        }
+    </script>
 </body>
 </html>
