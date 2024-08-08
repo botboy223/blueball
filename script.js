@@ -16,35 +16,57 @@ function loadFromLocalStorage(key) {
 }
 
 function switchToOption1() {
-    displaySection('option1');
+    document.getElementById('option1').style.display = 'block';
+    document.getElementById('option2').style.display = 'none';
+    document.getElementById('option3').style.display = 'none';
+    document.getElementById('option4').style.display = 'none';
+    document.getElementById('option5').style.display = 'none';
+    document.getElementById('option6').style.display = 'none';
 }
 
 function switchToOption2() {
-    displaySection('option2');
+    document.getElementById('option1').style.display = 'none';
+    document.getElementById('option2').style.display = 'block';
+    document.getElementById('option3').style.display = 'none';
+    document.getElementById('option4').style.display = 'none';
+    document.getElementById('option5').style.display = 'none';
+    document.getElementById('option6').style.display = 'none';
 }
 
 function switchToOption3() {
-    displaySection('option3');
+    document.getElementById('option1').style.display = 'none';
+    document.getElementById('option2').style.display = 'none';
+    document.getElementById('option3').style.display = 'block';
+    document.getElementById('option4').style.display = 'none';
+    document.getElementById('option5').style.display = 'none';
+    document.getElementById('option6').style.display = 'none';
 }
 
 function switchToOption4() {
-    displaySection('option4');
+    document.getElementById('option1').style.display = 'none';
+    document.getElementById('option2').style.display = 'none';
+    document.getElementById('option3').style.display = 'none';
+    document.getElementById('option4').style.display = 'block';
+    document.getElementById('option5').style.display = 'none';
+    document.getElementById('option6').style.display = 'none';
 }
 
 function switchToOption5() {
-    displaySection('option5');
-    loadBillHistory();
+    document.getElementById('option1').style.display = 'none';
+    document.getElementById('option2').style.display = 'none';
+    document.getElementById('option3').style.display = 'none';
+    document.getElementById('option4').style.display = 'none';
+    document.getElementById('option5').style.display = 'block';
+    document.getElementById('option6').style.display = 'none';
 }
 
 function switchToOption6() {
-    displaySection('option6');
-    loadInventory();
-}
-
-function displaySection(sectionId) {
-    const sections = document.querySelectorAll('.option');
-    sections.forEach(section => section.style.display = 'none');
-    document.getElementById(sectionId).style.display = 'block';
+    document.getElementById('option1').style.display = 'none';
+    document.getElementById('option2').style.display = 'none';
+    document.getElementById('option3').style.display = 'none';
+    document.getElementById('option4').style.display = 'none';
+    document.getElementById('option5').style.display = 'none';
+    document.getElementById('option6').style.display = 'block';
 }
 
 domReady(function () {
@@ -52,7 +74,6 @@ domReady(function () {
     let cart = [];
     let upiDetails = loadFromLocalStorage('upiDetails') || {};
     let billHistory = loadFromLocalStorage('billHistory') || [];
-    let inventory = loadFromLocalStorage('inventory') || {};
 
     function onScanSuccessOption1(decodeText, decodeResult) {
         document.getElementById('barcode').value = decodeText;
@@ -129,11 +150,6 @@ domReady(function () {
         if (barcode && productName && !isNaN(productPrice)) {
             productDetails[barcode] = { name: productName, price: productPrice };
             saveToLocalStorage('productDetails', productDetails);
-
-            // Add to inventory
-            inventory[barcode] = { name: productName, price: productPrice };
-            saveToLocalStorage('inventory', inventory);
-
             alert('Product details saved.');
         } else {
             alert('Please fill in all fields.');
@@ -166,135 +182,127 @@ domReady(function () {
         document.getElementById('bill-qr-code').innerHTML = "";
         qrCode.append(document.getElementById('bill-qr-code'));
 
-        // Save the bill in history
-        const bill = {
-            id: Date.now(),
-            amount: totalAmount,
-            date: new Date().toLocaleString(),
-            cart: [...cart]
-        };
-        billHistory.push(bill);
-        saveToLocalStorage('billHistory', billHistory);
-
+        saveBillHistory(totalAmount);
         alert('Total Bill: ₹' + totalAmount);
-        cart = [];
-        displayCart();
     });
 
-    document.getElementById('qrForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        const upiId = document.getElementById('upi_id').value;
-        const name = document.getElementById('name').value;
-        const note = document.getElementById('note').value;
-
-        upiDetails = { upiId, name, note };
-        saveToLocalStorage('upiDetails', upiDetails);
-
-        alert('UPI details saved.');
-    });
-
-    document.getElementById('download-data').addEventListener('click', () => {
-        const data = {
-            productDetails,
-            cart,
-            upiDetails,
-            billHistory,
-            inventory
+    // Function to save bill history
+    function saveBillHistory(totalAmount) {
+        const billId = Date.now(); // Unique bill ID using timestamp
+        const date = new Date().toLocaleString(); // Current date and time
+        const billData = {
+            billId,
+            date,
+            totalAmount,
+            cart: [...cart],
         };
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'data.json';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    });
+        billHistory.push(billData);
+        saveToLocalStorage('billHistory', billHistory);
+        alert('Bill saved to history.');
+    }
 
-    document.getElementById('upload-data').addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const data = JSON.parse(e.target.result);
-                if (data.productDetails) productDetails = data.productDetails;
-                if (data.cart) cart = data.cart;
-                if (data.upiDetails) upiDetails = data.upiDetails;
-                if (data.billHistory) billHistory = data.billHistory;
-                if (data.inventory) inventory = data.inventory;
-
-                saveToLocalStorage('productDetails', productDetails);
-                saveToLocalStorage('upiDetails', upiDetails);
-                saveToLocalStorage('billHistory', billHistory);
-                saveToLocalStorage('inventory', inventory);
-
-                alert('Data imported successfully.');
-            };
-            reader.readAsText(file);
-        }
-    });
-
-    function loadBillHistory() {
+    // Function to display bill history
+    function displayBillHistory() {
         const billHistoryDiv = document.getElementById('bill-history');
         billHistoryDiv.innerHTML = '';
 
-        billHistory.forEach(bill => {
+        billHistory.forEach((bill, index) => {
             const billDiv = document.createElement('div');
             billDiv.innerHTML = `
-                <strong>Bill ID:</strong> ${bill.id}<br>
-                <strong>Date:</strong> ${bill.date}<br>
-                <strong>Total Amount:</strong> ₹${bill.amount}<br>
-                <button onclick="deleteBill(${bill.id})">Delete</button>
+                <strong>Bill ID:</strong> ${bill.billId} <br>
+                <strong>Date:</strong> ${bill.date} <br>
+                <strong>Total:</strong> ₹${bill.totalAmount} <br>
+                <button onclick="deleteBill(${index})">Delete Bill</button>
                 <hr>
             `;
             billHistoryDiv.appendChild(billDiv);
         });
     }
 
-    function deleteBill(billId) {
-        billHistory = billHistory.filter(bill => bill.id !== billId);
+    // Function to delete a bill from history
+    function deleteBill(index) {
+        billHistory.splice(index, 1);
         saveToLocalStorage('billHistory', billHistory);
-        loadBillHistory();
+        displayBillHistory();
     }
 
-    function loadInventory() {
-        const inventoryListDiv = document.getElementById('inventory-list');
-        inventoryListDiv.innerHTML = '';
+    // Function to display inventory
+    function displayInventory() {
+        const inventoryDiv = document.getElementById('inventory');
+        inventoryDiv.innerHTML = '';
 
-        Object.keys(inventory).forEach(barcode => {
-            const item = inventory[barcode];
-            const itemDiv = document.createElement('div');
-            itemDiv.innerHTML = `
-                <strong>Barcode:</strong> ${barcode}<br>
-                <strong>Name:</strong> ${item.name}<br>
-                <strong>Price:</strong> ₹${item.price}<br>
-                <button onclick="deleteInventoryItem('${barcode}')">Delete</button>
+        Object.keys(productDetails).forEach(barcode => {
+            const product = productDetails[barcode];
+            const soldQuantity = billHistory.reduce((total, bill) => {
+                const productInBill = bill.cart.find(item => item.code === barcode);
+                return total + (productInBill ? productInBill.quantity : 0);
+            }, 0);
+            const totalQuantity = product.quantity || 0;
+            const remainingQuantity = totalQuantity - soldQuantity;
+
+            const productDiv = document.createElement('div');
+            productDiv.innerHTML = `
+                <strong>Barcode:</strong> ${barcode} <br>
+                <strong>Name:</strong> ${product.name} <br>
+                <strong>Price:</strong> ₹${product.price} <br>
+                <strong>Total Quantity:</strong> ${totalQuantity} <br>
+                <strong>Sold Quantity:</strong> ${soldQuantity} <br>
+                <strong>Remaining Quantity:</strong> ${remainingQuantity} <br>
+                <button onclick="editProduct('${barcode}')">Edit Product</button>
                 <hr>
             `;
-            inventoryListDiv.appendChild(itemDiv);
+            inventoryDiv.appendChild(productDiv);
         });
     }
 
-    function deleteInventoryItem(barcode) {
-        delete inventory[barcode];
-        saveToLocalStorage('inventory', inventory);
-        loadInventory();
+    // Function to edit product in inventory
+    function editProduct(barcode) {
+        const product = productDetails[barcode];
+        const newName = prompt("Enter new product name:", product.name);
+        const newPrice = parseFloat(prompt("Enter new product price:", product.price));
+        const newQuantity = parseInt(prompt("Enter new total quantity:", product.quantity || 0), 10);
+
+        if (newName && !isNaN(newPrice) && !isNaN(newQuantity)) {
+            productDetails[barcode] = { name: newName, price: newPrice, quantity: newQuantity };
+            saveToLocalStorage('productDetails', productDetails);
+            displayInventory();
+        } else {
+            alert('Invalid input.');
+        }
     }
 
-    const qrReaderOption1 = new Html5Qrcode("my-qr-reader-option1");
-    const qrReaderOption2 = new Html5Qrcode("my-qr-reader-option2");
+    // UPI QR Code section
+    document.getElementById('save-upi').addEventListener('click', () => {
+        const upiId = document.getElementById('upi-id').value;
+        const name = document.getElementById('upi-name').value;
+        const note = document.getElementById('upi-note').value;
 
-    qrReaderOption1.start(
+        if (upiId && name && note) {
+            upiDetails = { upiId, name, note };
+            saveToLocalStorage('upiDetails', upiDetails);
+            alert('UPI details saved.');
+        } else {
+            alert('Please fill in all fields.');
+        }
+    });
+
+    // Initialize QR code readers
+    const html5QrCodeOption1 = new Html5Qrcode("reader-option1");
+    const html5QrCodeOption2 = new Html5Qrcode("reader-option2");
+
+    html5QrCodeOption1.start(
         { facingMode: "environment" },
         { fps: 10, qrbox: 250 },
         onScanSuccessOption1
     );
 
-    qrReaderOption2.start(
+    html5QrCodeOption2.start(
         { facingMode: "environment" },
         { fps: 10, qrbox: 250 },
         onScanSuccessOption2
     );
+
+    // Call display functions on page load
+    displayBillHistory();
+    displayInventory();
 });
