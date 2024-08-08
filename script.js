@@ -300,4 +300,7 @@ domReady(function () {
         },
         onScanSuccessOption2
     );
+
+    // Load bill history when switching to option 5
+    switchToOption5();
 });
