@@ -7,56 +7,75 @@
     <title>QR Code Scanner / Reader</title>
 </head>
 <body>
-    <!-- Navigation and options sections -->
-    <nav>
-        <button onclick="switchToOption1()">Option 1</button>
-        <button onclick="switchToOption2()">Option 2</button>
-        <button onclick="switchToOption3()">Option 3</button>
-        <button onclick="switchToOption4()">Option 4</button>
-        <button onclick="switchToOption5()">Bill History</button>
-    </nav>
+    <div class="container">
+        <h1>QR Code Scanner</h1>
+        <div class="button-group">
+            <button id="option1-button" onclick="switchToOption1()">Set Barcode Values</button>
+            <button id="option2-button" onclick="switchToOption2()">Generate Bill</button>
+            <button id="option3-button" onclick="switchToOption3()">UPI QR Code</button>
+            <button id="option4-button" onclick="switchToOption4()">Import/Export Data</button>
+            <button id="option5-button" onclick="switchToOption5()">Bill History</button>
+        </div>
 
-    <!-- Option 1: Product Details Section -->
-    <section id="option1" style="display: none;">
-        <div id="my-qr-reader-option1"></div>
-        <input type="text" id="barcode" placeholder="Scan or Enter Barcode">
-        <input type="text" id="product-name" placeholder="Product Name">
-        <input type="number" id="product-price" placeholder="Product Price">
-        <button id="save-barcode">Save Product</button>
-    </section>
+        <div id="option1" class="option">
+            <div id="my-qr-reader-option1"></div>
+            <div class="input-group">
+                <label for="barcode">Barcode:</label>
+                <input type="text" id="barcode" readonly>
+            </div>
+            <div class="input-group">
+                <label for="product-name">Product Name:</label>
+                <input type="text" id="product-name">
+            </div>
+            <div class="input-group">
+                <label for="product-price">Product Price:</label>
+                <input type="number" id="product-price">
+            </div>
+            <button id="save-barcode">Save</button>
+        </div>
 
-    <!-- Option 2: Cart Section -->
-    <section id="option2" style="display: none;">
-        <div id="my-qr-reader-option2"></div>
-        <div id="cart"></div>
-        <div id="total">Total: ₹0</div>
-        <button id="generate-bill">Generate Bill</button>
-    </section>
+        <div id="option2" class="option" style="display: none;">
+            <div id="my-qr-reader-option2"></div>
+            <h2>Cart</h2>
+            <div id="cart"></div>
+            <div id="total">Total: ₹0</div>
+            <button id="generate-bill">Generate Bill</button>
+            <div id="bill-qr-code"></div>
+        </div>
 
-    <!-- Option 3: UPI QR Code Setup -->
-    <section id="option3" style="display: none;">
-        <form id="qrForm">
-            <input type="text" id="upi_id" placeholder="Enter UPI ID">
-            <input type="text" id="name" placeholder="Enter Your Name">
-            <input type="text" id="note" placeholder="Payment Note">
-            <button type="submit">Save UPI Details</button>
-        </form>
-    </section>
+        <div id="option3" class="option" style="display: none;">
+            <h2>UPI QR Code Generator</h2>
+            <form id="qrForm">
+                <div class="input-group">
+                    <label for="upi_id">UPI ID (e.g., 9545689031@paytm):</label>
+                    <input type="text" id="upi_id" name="upi_id" required>
+                </div>
+                <div class="input-group">
+                    <label for="name">Name (e.g., sikot):</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="input-group">
+                    <label for="note">Transaction Note (e.g., s):</label>
+                    <input type="text" id="note" name="note" required>
+                </div>
+                <button type="submit">Save UPI Details</button>
+            </form>
+            <div id="qrCode"></div>
+        </div>
 
-    <!-- Option 4: Data Management Section -->
-    <section id="option4" style="display: none;">
-        <button id="download-data">Download Data</button>
-        <input type="file" id="upload-data">
-    </section>
+        <div id="option4" class="option" style="display: none;">
+            <h2>Import/Export Data</h2>
+            <button id="download-data">Download Data</button>
+            <input type="file" id="upload-data" accept=".json">
+        </div>
 
-    <!-- Option 5: Bill History Section -->
-    <section id="option5" style="display: none;">
-        <div id="bill-history"></div>
-    </section>
-
-    <!-- Include your JavaScript and necessary scripts here -->
-    <script src="path/to/Html5QrcodeScanner.js"></script>
-    <script src="path/to/QRCodeStyling.js"></script>
-    <script src="path/to/your_script.js"></script>
-</body> 
-    </html>
+        <div id="option5" class="option" style="display: none;">
+            <h2>Bill History</h2>
+            <div id="bill-history"></div>
+        </div>
+    </div>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qr-code-styling/lib/qr-code-styling.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
