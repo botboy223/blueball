@@ -1,34 +1,8 @@
-// inventory_script.js
 document.addEventListener('DOMContentLoaded', function () {
     const inventoryDiv = document.getElementById('inventory');
-    let productDetails = loadFromLocalStorage('productDetails') || {};
-    let cart = loadFromLocalStorage('cart') || [];
+    let inventory = loadFromLocalStorage('inventory') || {};
 
     function updateInventory() {
-        const inventory = {};
-
-        // Initialize inventory with product details
-        for (const barcode in productDetails) {
-            inventory[barcode] = {
-                ...productDetails[barcode],
-                currentQuantity: 0,
-                salesData: []
-            };
-        }
-
-        // Calculate current quantity and sales data from the cart
-        cart.forEach(item => {
-            if (inventory[item.code]) {
-                inventory[item.code].currentQuantity += item.quantity;
-                inventory[item.code].salesData.push(item.quantity);
-            }
-        });
-
-        // Display inventory
-        displayInventory(inventory);
-    }
-
-    function displayInventory(inventory) {
         inventoryDiv.innerHTML = '';
 
         for (const barcode in inventory) {
@@ -59,8 +33,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 const newQuantity = parseInt(input.value, 10);
 
                 if (!isNaN(newQuantity)) {
-                    productDetails[barcode].currentQuantity = newQuantity;
-                    saveToLocalStorage('productDetails', productDetails);
+                    inventory[barcode].currentQuantity = newQuantity;
+                    saveToLocalStorage('inventory', inventory);
                 }
             }
         });
@@ -69,7 +43,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // Initialize the inventory view
     updateInventory();
 
-    // Optional: refresh inventory when switching to this option
     window.switchToOption6 = function () {
         document.getElementById('option1').style.display = 'none';
         document.getElementById('option2').style.display = 'none';
