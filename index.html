@@ -1,11 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
     <title>QR Code Scanner / Reader</title>
     <style>
+        /* Basic styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .button-group, .section {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Dialog Box */
         .dialog {
             display: none;
             position: fixed;
@@ -15,7 +53,7 @@
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgba(0,0,0,0.4);
+            background-color: rgba(0, 0, 0, 0.4);
         }
 
         .dialog-content {
@@ -42,31 +80,29 @@
             text-decoration: none;
             cursor: pointer;
         }
-
-        .hidden {
-            display: none;
-        }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>QR Code Scanner</h1>
+
         <div class="button-group">
-            <button id="moreButton" onclick="showMoreOptions()">More</button>
+            <button id="moreButton" onclick="showMoreOptions()">More Options</button>
         </div>
 
         <div id="moreOptions" class="hidden">
-            <button id="option1-button" onclick="switchToOption1()">Set Barcode Values</button>
-            <button id="option3-button" onclick="switchToOption3()">UPI QR Code</button>
-            <button id="option4-button" onclick="switchToOption4()">Import/Export Data</button>
-            <button id="option5-button" onclick="switchToOption5()">View Bill History</button>
-            <!-- Button to trigger dialog box -->
+            <button onclick="switchToOption1()">Set Barcode Values</button>
+            <button onclick="switchToOption3()">UPI QR Code</button>
+            <button onclick="switchToOption4()">Import/Export Data</button>
+            <button onclick="switchToOption5()">View Bill History</button>
             <button id="openDialogBtn">Download File</button>
-            <!-- Home Page Button -->
-            <button id="homePageBtn" onclick="window.location.href='https://qrwale.in/'">Home Page</button>
+            <button onclick="window.location.href='https://qrwale.in/'">Home Page</button>
         </div>
 
-        <div id="option1" class="option hidden">
+        <!-- Options Sections -->
+        <div id="option1" class="section hidden">
+            <h2>Set Barcode Values</h2>
             <div id="my-qr-reader-option1"></div>
             <div class="input-group">
                 <label for="barcode">Barcode:</label>
@@ -83,28 +119,28 @@
             <button id="save-barcode">Save</button>
         </div>
 
-        <div id="option2" class="option">
-            <div id="my-qr-reader-option2"></div>
+        <div id="option2" class="section">
             <h2>Cart</h2>
+            <div id="my-qr-reader-option2"></div>
             <div id="cart"></div>
             <div id="total">Total: ₹0</div>
             <button id="generate-bill">Generate Bill</button>
             <div id="bill-qr-code"></div>
         </div>
 
-        <div id="option3" class="option hidden">
+        <div id="option3" class="section hidden">
             <h2>UPI QR Code Generator</h2>
             <form id="qrForm">
                 <div class="input-group">
-                    <label for="upi_id">UPI ID (e.g., 9545689031@paytm):</label>
+                    <label for="upi_id">UPI ID:</label>
                     <input type="text" id="upi_id" name="upi_id" required>
                 </div>
                 <div class="input-group">
-                    <label for="name">Name (e.g., hello):</label>
+                    <label for="name">Name:</label>
                     <input type="text" id="name" name="name" required>
                 </div>
                 <div class="input-group">
-                    <label for="note">Transaction Note (e.g., note):</label>
+                    <label for="note">Transaction Note:</label>
                     <input type="text" id="note" name="note" required>
                 </div>
                 <button type="submit">Save UPI Details</button>
@@ -112,14 +148,13 @@
             <div id="qrCode"></div>
         </div>
 
-        <div id="option4" class="option hidden">
+        <div id="option4" class="section hidden">
             <h2>Import/Export Data</h2>
             <button id="download-data">Download Data</button>
             <input type="file" id="upload-data" accept=".json">
         </div>
 
-        <!-- Added Bill History Option -->
-        <div id="option5" class="option hidden">
+        <div id="option5" class="section hidden">
             <h2>Bill History</h2>
             <div id="bill-history"></div>
         </div>
@@ -130,14 +165,16 @@
         <div class="dialog-content">
             <span id="closeDialogBtn" class="close">&times;</span>
             <p>Click the link below to download the file:</p>
-            <a href="https://drive.google.com/file/d/1zDukCzjcSFB8-73XQzS8Jtc1XftueKrI/view?usp=sharing" download>Download apk</a>
+            <a href="https://drive.google.com/file/d/1zDukCzjcSFB8-73XQzS8Jtc1XftueKrI/view?usp=sharing" download>Download APK</a>
         </div>
     </div>
 
+    <!-- Scripts -->
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdn.jsdelivr.net/npm/qr-code-styling/lib/qr-code-styling.js"></script>
     <script src="script.js"></script>
     <script>
+        // Dialog Box Logic
         document.getElementById('openDialogBtn').onclick = function() {
             document.getElementById('dialogBox').style.display = 'block';
         };
@@ -152,42 +189,26 @@
             }
         };
 
+        // Toggle More Options
         function showMoreOptions() {
             document.getElementById('moreOptions').classList.toggle('hidden');
         }
 
-        function switchToOption1() {
-            hideAllOptions();
-            document.getElementById('option1').style.display = 'block';
-        }
-
-        function switchToOption2() {
-            hideAllOptions();
-            document.getElementById('option2').style.display = 'block';
-        }
-
-        function switchToOption3() {
-            hideAllOptions();
-            document.getElementById('option3').style.display = 'block';
-        }
-
-        function switchToOption4() {
-            hideAllOptions();
-            document.getElementById('option4').style.display = 'block';
-        }
-
-        function switchToOption5() {
-            hideAllOptions();
-            document.getElementById('option5').style.display = 'block';
-        }
+        // Option Switching Logic
+        function switchToOption1() { hideAllOptions(); document.getElementById('option1').classList.remove('hidden'); }
+        function switchToOption2() { hideAllOptions(); document.getElementById('option2').classList.remove('hidden'); }
+        function switchToOption3() { hideAllOptions(); document.getElementById('option3').classList.remove('hidden'); }
+        function switchToOption4() { hideAllOptions(); document.getElementById('option4').classList.remove('hidden'); }
+        function switchToOption5() { hideAllOptions(); document.getElementById('option5').classList.remove('hidden'); }
 
         function hideAllOptions() {
-            document.getElementById('option1').style.display = 'none';
-            document.getElementById('option2').style.display = 'none';
-            document.getElementById('option3').style.display = 'none';
-            document.getElementById('option4').style.display = 'none';
-            document.getElementById('option5').style.display = 'none';
+            document.getElementById('option1').classList.add('hidden');
+            document.getElementById('option2').classList.add('hidden');
+            document.getElementById('option3').classList.add('hidden');
+            document.getElementById('option4').classList.add('hidden');
+            document.getElementById('option5').classList.add('hidden');
         }
     </script>
 </body>
+
 </html>
