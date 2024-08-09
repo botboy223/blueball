@@ -57,7 +57,6 @@
 
         <div id="moreOptions" class="hidden">
             <button id="option1-button" onclick="switchToOption1()">Set Barcode Values</button>
-            <button id="option2-button" onclick="switchToOption2()">Scan and Add to Cart</button>
             <button id="option3-button" onclick="switchToOption3()">UPI QR Code</button>
             <button id="option4-button" onclick="switchToOption4()">Import/Export Data</button>
             <button id="option5-button" onclick="switchToOption5()">View Bill History</button>
@@ -84,7 +83,7 @@
             <button id="save-barcode">Save</button>
         </div>
 
-        <div id="option2" class="option hidden">
+        <div id="option2" class="option">
             <div id="my-qr-reader-option2"></div>
             <h2>Cart</h2>
             <div id="cart"></div>
@@ -119,6 +118,7 @@
             <input type="file" id="upload-data" accept=".json">
         </div>
 
+        <!-- Added Bill History Option -->
         <div id="option5" class="option hidden">
             <h2>Bill History</h2>
             <div id="bill-history"></div>
