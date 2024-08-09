@@ -1,5 +1,8 @@
 function domReady(fn) {
-    if (document.readyState === "complete" || document.readyState === "interactive") {
+    if (
+        document.readyState === "complete" ||
+        document.readyState === "interactive"
+    ) {
         setTimeout(fn, 1);
     } else {
         document.addEventListener("DOMContentLoaded", fn);
@@ -240,7 +243,8 @@ domReady(function () {
     document.getElementById('moreOptions').innerHTML += `
         <button id="option5-button" onclick="switchToOption5()">View Bill History</button>
     `;
-    
+
+    // Save UPI Details
     document.getElementById('save-upi-details').addEventListener('click', () => {
         upiDetails = {
             upiId: document.getElementById('upi-id').value,
@@ -251,6 +255,15 @@ domReady(function () {
         alert('UPI details saved.');
     });
 
+    // Initialize QR Scanners for both options
     new Html5QrcodeScanner("reader-option1", { fps: 10, qrbox: 250 }).render(onScanSuccessOption1);
     new Html5QrcodeScanner("reader-option2", { fps: 10, qrbox: 250 }).render(onScanSuccessOption2);
+
+    // General QR Scanner (if needed)
+    function onScanSuccess(decodeText, decodeResult) {
+        alert("Your QR is: " + decodeText, decodeResult);
+    }
+
+    let htmlscanner = new Html5QrcodeScanner("my-qr-reader", { fps: 10, qrbox: 250 });
+    htmlscanner.render(onScanSuccess);
 });
