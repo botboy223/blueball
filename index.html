@@ -1,271 +1,197 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Code Scanner/Reader App</title>
+    <link rel="stylesheet" href="style.css">
+    <title>QR Code Scanner / Reader</title>
     <style>
-        .hidden { display: none; }
-        .option { margin-top: 20px; }
-        .option-button { margin: 5px; }
-        #cart { margin-top: 20px; }
-        #total { margin-top: 10px; font-size: 18px; font-weight: bold; }
-        #bill-qr-code { margin-top: 20px; }
-        h2 { margin-top: 0; }
+        .dialog {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .dialog-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
+
 <body>
+    <div class="container">
+        <h1>QR Code Scanner</h1>
+        <div class="button-group">
+            <button id="moreButton" onclick="showMoreOptions()">More</button>
+        </div>
 
-    <h1>QR Code Scanner/Reader Application</h1>
+        <div id="moreOptions" class="hidden">
+            <button id="option1-button" onclick="switchToOption1()">Set Barcode Values</button>
+            <button id="option2-button" onclick="switchToOption2()">Shopping Cart</button>
+            <button id="option3-button" onclick="switchToOption3()">UPI QR Code</button>
+            <button id="option4-button" onclick="switchToOption4()">Import/Export Data</button>
+            <button id="option5-button" onclick="switchToOption5()">Bill History</button>
+            <!-- Button to trigger dialog box -->
+            <button id="openDialogBtn">Download File</button>
+            <!-- Home Page Button -->
+            <button id="homePageBtn" onclick="window.location.href='https://qrwale.in/'">Home Page</button>
+        </div>
 
-    <div>
-        <button class="option-button" id="option1-button" onclick="switchToOption1()">Scan Barcode</button>
-        <button class="option-button" id="option2-button" onclick="switchToOption2()">Generate UPI QR Code</button>
-        <button class="option-button" id="option3-button" onclick="switchToOption3()">View Inventory</button>
-        <button class="option-button" id="option4-button" onclick="switchToOption4()">Generate Bill</button>
-        <button class="option-button" id="option5-button" onclick="switchToOption5()">Bill History</button>
+        <div id="option1" class="option hidden">
+            <div id="my-qr-reader-option1"></div>
+            <div class="input-group">
+                <label for="barcode">Barcode:</label>
+                <input type="text" id="barcode" readonly>
+            </div>
+            <div class="input-group">
+                <label for="product-name">Product Name:</label>
+                <input type="text" id="product-name">
+            </div>
+            <div class="input-group">
+                <label for="product-price">Product Price:</label>
+                <input type="number" id="product-price">
+            </div>
+            <button id="save-barcode">Save</button>
+        </div>
+
+        <div id="option2" class="option hidden">
+            <div id="my-qr-reader-option2"></div>
+            <h2>Cart</h2>
+            <div id="cart"></div>
+            <div id="total">Total: ₹0</div>
+            <button id="generate-bill">Generate Bill</button>
+            <div id="bill-qr-code"></div>
+        </div>
+
+        <div id="option3" class="option hidden">
+            <h2>UPI QR Code Generator</h2>
+            <form id="qrForm">
+                <div class="input-group">
+                    <label for="upi_id">UPI ID (e.g., 9545689031@paytm):</label>
+                    <input type="text" id="upi_id" name="upi_id" required>
+                </div>
+                <div class="input-group">
+                    <label for="name">Name (e.g., hello):</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="input-group">
+                    <label for="note">Transaction Note (e.g., note):</label>
+                    <input type="text" id="note" name="note" required>
+                </div>
+                <button type="submit">Save UPI Details</button>
+            </form>
+            <div id="qrCode"></div>
+        </div>
+
+        <div id="option4" class="option hidden">
+            <h2>Import/Export Data</h2>
+            <button id="download-data">Download Data</button>
+            <input type="file" id="upload-data" accept=".json">
+        </div>
+
+        <div id="option5" class="option hidden">
+            <h2>Bill History</h2>
+            <div id="bill-history"></div>
+            <button id="clear-history">Clear History</button>
+        </div>
     </div>
 
-    <!-- Option 1: Scan Barcode -->
-    <div id="option1" class="option hidden">
-        <h2>Scan Barcode</h2>
-        <input type="file" accept="image/*" id="barcode-file">
-        <p id="barcode-result"></p>
+    <!-- Dialog Box -->
+    <div id="dialogBox" class="dialog">
+        <div class="dialog-content">
+            <span id="closeDialogBtn" class="close">&times;</span>
+            <p>Click the link below to download the file:</p>
+            <a href="https://drive.google.com/file/d/1zDukCzjcSFB8-73XQzS8Jtc1XftueKrI/view?usp=sharing" download>Download apk</a>
+        </div>
     </div>
 
-    <!-- Option 2: Generate UPI QR Code -->
-    <div id="option2" class="option hidden">
-        <h2>Generate UPI QR Code</h2>
-        <label for="upi-id">UPI ID:</label>
-        <input type="text" id="upi-id"><br>
-        <label for="upi-name">Name:</label>
-        <input type="text" id="upi-name"><br>
-        <label for="upi-note">Note:</label>
-        <input type="text" id="upi-note"><br>
-        <button id="generate-upi-qr">Generate UPI QR Code</button>
-        <div id="upi-qr-code"></div>
-    </div>
-
-    <!-- Option 3: View Inventory -->
-    <div id="option3" class="option hidden">
-        <h2>View Inventory</h2>
-        <div id="inventory"></div>
-    </div>
-
-    <!-- Option 4: Generate Bill -->
-    <div id="option4" class="option hidden">
-        <h2>Generate Bill</h2>
-        <button id="add-to-cart">Add to Cart</button>
-        <div id="cart"></div>
-        <div id="total">Total: ₹0</div>
-        <button id="generate-bill">Generate Bill</button>
-        <div id="bill-qr-code"></div>
-    </div>
-
-    <!-- Option 5: Bill History -->
-    <div id="option5" class="option hidden">
-        <h2>Bill History</h2>
-        <div id="bill-history"></div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/qrcode-styling/lib/index.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qr-code-styling/lib/qr-code-styling.js"></script>
+    <script src="script.js"></script>
     <script>
-        // Common variables and functions
-        let inventory = loadFromLocalStorage('inventory') || [];
-        let cart = [];
-        let total = 0;
-        let billHistory = loadFromLocalStorage('billHistory') || [];
-
-        const upiDetails = {
-            upiId: '',
-            name: '',
-            note: ''
+        document.getElementById('openDialogBtn').onclick = function () {
+            document.getElementById('dialogBox').style.display = 'block';
         };
 
-        function saveToLocalStorage(key, data) {
-            localStorage.setItem(key, JSON.stringify(data));
+        document.getElementById('closeDialogBtn').onclick = function () {
+            document.getElementById('dialogBox').style.display = 'none';
+        };
+
+        window.onclick = function (event) {
+            if (event.target == document.getElementById('dialogBox')) {
+                document.getElementById('dialogBox').style.display = 'none';
+            }
+        };
+
+        function showMoreOptions() {
+            document.getElementById('moreOptions').classList.toggle('hidden');
         }
 
-        function loadFromLocalStorage(key) {
-            return JSON.parse(localStorage.getItem(key));
-        }
-
-        function hideAllOptions() {
-            document.querySelectorAll('.option').forEach(option => {
-                option.classList.add('hidden');
-            });
-        }
-
-        // Option 1: Scan Barcode
         function switchToOption1() {
             hideAllOptions();
             document.getElementById('option1').classList.remove('hidden');
         }
 
-        document.getElementById('barcode-file').addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            const reader = new FileReader();
-
-            reader.onload = () => {
-                const barcodeData = reader.result;
-                const code = barcodeData.split(',')[1].substring(0, 6); // Simulate a barcode read
-                document.getElementById('barcode-result').innerText = `Scanned Barcode: ${code}`;
-                alert(`Scanned Barcode: ${code}`);
-
-                // Simulate adding to inventory
-                const product = {
-                    code,
-                    name: 'Product ' + code,
-                    quantity: 1
-                };
-                inventory.push(product);
-                saveToLocalStorage('inventory', inventory);
-            };
-
-            reader.readAsDataURL(file);
-        });
-
-        // Option 2: Generate UPI QR Code
         function switchToOption2() {
             hideAllOptions();
             document.getElementById('option2').classList.remove('hidden');
         }
 
-        document.getElementById('generate-upi-qr').addEventListener('click', () => {
-            upiDetails.upiId = document.getElementById('upi-id').value;
-            upiDetails.name = document.getElementById('upi-name').value;
-            upiDetails.note = document.getElementById('upi-note').value;
-
-            const upiUrl = `upi://pay?pa=${upiDetails.upiId}&pn=${upiDetails.name}&tn=${upiDetails.note}&cu=INR`;
-
-            const qrCode = new QRCodeStyling({
-                width: 300,
-                height: 300,
-                data: upiUrl,
-                dotsOptions: {
-                    color: "#000",
-                    type: "rounded"
-                },
-                backgroundOptions: {
-                    color: "#fff",
-                }
-            });
-
-            document.getElementById('upi-qr-code').innerHTML = "";
-            qrCode.append(document.getElementById('upi-qr-code'));
-        });
-
-        // Option 3: View Inventory
         function switchToOption3() {
             hideAllOptions();
             document.getElementById('option3').classList.remove('hidden');
-
-            const inventoryDiv = document.getElementById('inventory');
-            inventoryDiv.innerHTML = '';
-
-            if (inventory.length === 0) {
-                inventoryDiv.innerHTML = '<p>No items in inventory.</p>';
-            } else {
-                inventory.forEach(product => {
-                    const productDiv = document.createElement('div');
-                    productDiv.innerText = `${product.code}: ${product.name} - Quantity: ${product.quantity}`;
-                    inventoryDiv.appendChild(productDiv);
-                });
-            }
         }
 
-        // Option 4: Generate Bill
         function switchToOption4() {
             hideAllOptions();
             document.getElementById('option4').classList.remove('hidden');
         }
 
-        document.getElementById('add-to-cart').addEventListener('click', () => {
-            if (inventory.length === 0) {
-                alert('No items in inventory to add.');
-                return;
-            }
-
-            const product = inventory.pop(); // Simulate adding the last item to cart
-            cart.push(product);
-
-            const cartDiv = document.getElementById('cart');
-            const productDiv = document.createElement('div');
-            productDiv.innerText = `${product.code}: ${product.name} - Quantity: ${product.quantity}`;
-            cartDiv.appendChild(productDiv);
-
-            total += product.quantity * 100; // Simulate price as 100 per quantity
-            document.getElementById('total').innerText = `Total: ₹${total}`;
-        });
-
-        document.getElementById('generate-bill').addEventListener('click', () => {
-            if (!upiDetails.upiId || !upiDetails.name || !upiDetails.note) {
-                alert('Please set up your UPI details in the UPI QR Code section first.');
-                return;
-            }
-
-            const totalAmount = total;
-            const upiUrl = `upi://pay?pa=${upiDetails.upiId}&pn=${upiDetails.name}&am=${totalAmount}&cu=INR&tn=${upiDetails.note}`;
-
-            const qrCode = new QRCodeStyling({
-                width: 300,
-                height: 300,
-                data: upiUrl,
-                dotsOptions: {
-                    color: "#000",
-                    type: "rounded"
-                },
-                backgroundOptions: {
-                    color: "#fff",
-                }
-            });
-
-            document.getElementById('bill-qr-code').innerHTML = "";
-            qrCode.append(document.getElementById('bill-qr-code'));
-
-            // Store the bill in history
-            const billData = {
-                date: new Date().toLocaleString(),
-                totalAmount,
-                products: [...cart]
-            };
-            billHistory.push(billData);
-            saveToLocalStorage('billHistory', billHistory);
-
-            alert('Total Bill: ₹' + totalAmount);
-        });
-
-        // Option 5: Bill History
         function switchToOption5() {
             hideAllOptions();
             document.getElementById('option5').classList.remove('hidden');
-            displayBillHistory();
         }
 
-        function displayBillHistory() {
-            const billHistoryDiv = document.getElementById('bill-history');
-            billHistoryDiv.innerHTML = '';
-
-            if (billHistory.length === 0) {
-                billHistoryDiv.innerHTML = '<p>No bills generated yet.</p>';
-                return;
-            }
-
-            billHistory.forEach((bill, index) => {
-                const billDiv = document.createElement('div');
-                billDiv.innerHTML = `
-                    <h3>Bill ${index + 1} (${bill.date})</h3>
-                    <p>Total: ₹${bill.totalAmount}</p>
-                    <ul>
-                        ${bill.products.map(product => `
-                            <li>${product.code} - ${product.name} - Quantity: ${product.quantity}</li>
-                        `).join('')}
-                    </ul>
-                `;
-                billHistoryDiv.appendChild(billDiv);
-            });
+        function hideAllOptions() {
+            document.getElementById('option1').classList.add('hidden');
+            document.getElementById('option2').classList.add('hidden');
+            document.getElementById('option3').classList.add('hidden');
+            document.getElementById('option4').classList.add('hidden');
+            document.getElementById('option5').classList.add('hidden');
         }
-
     </script>
 </body>
+
 </html>
