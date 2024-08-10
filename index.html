@@ -47,6 +47,17 @@
         .hidden {
             display: none;
         }
+
+        #option6 {
+            margin-top: 20px;
+        }
+
+        #saved-history {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+        }
     </style>
 </head>
 
@@ -126,6 +137,14 @@
             <div id="bill-history"></div>
             <button id="clear-history">Clear History</button>
         </div>
+
+        <!-- Bill History Management Section -->
+        <div id="option6" class="option hidden">
+            <h2>Manage Bill History</h2>
+            <button id="save-history">Save Current History</button>
+            <div id="saved-history"></div>
+            <button id="clear-saved-history">Clear All History</button>
+        </div>
     </div>
 
     <!-- Dialog Box -->
@@ -186,12 +205,18 @@
             document.getElementById('option5').classList.remove('hidden');
         }
 
+        function switchToOption6() {
+            hideAllOptions();
+            document.getElementById('option6').classList.remove('hidden');
+        }
+
         function hideAllOptions() {
             document.getElementById('option1').classList.add('hidden');
             document.getElementById('option2').classList.add('hidden');
             document.getElementById('option3').classList.add('hidden');
             document.getElementById('option4').classList.add('hidden');
             document.getElementById('option5').classList.add('hidden');
+            document.getElementById('option6').classList.add('hidden');
         }
 
         function startQrScanner(elementId) {
@@ -214,6 +239,57 @@
                 console.error(`Unable to start scanning, error: ${err}`);
             });
         }
+
+        document.getElementById('save-history').onclick = function () {
+            const currentDateTime = new Date().toLocaleString();
+            const billHistoryDiv = document.getElementById('bill-history');
+            const billContent = billHistoryDiv.innerHTML;
+
+            // Create a new entry
+            const historyEntry = {
+                dateTime: currentDateTime,
+                content: billContent
+            };
+
+            // Get existing history from local storage
+            let history = JSON.parse(localStorage.getItem('billHistory')) || [];
+            history.push(historyEntry);
+
+            // Save updated history to local storage
+            localStorage.setItem('billHistory', JSON.stringify(history));
+
+            // Update the saved history section
+            updateSavedHistory();
+        };
+
+        document.getElementById('clear-saved-history').onclick = function () {
+            if (confirm("Are you sure you want to clear all saved history?")) {
+                localStorage.removeItem('billHistory');
+                updateSavedHistory();
+            }
+        };
+
+        function updateSavedHistory() {
+            const savedHistoryDiv = document.getElementById('saved-history');
+            let history = JSON.parse(localStorage.getItem('billHistory')) || [];
+            savedHistoryDiv.innerHTML = '';
+
+            if (history.length === 0) {
+                savedHistoryDiv.innerHTML = '<p>No saved history available.</p>';
+                return;
+            }
+
+            history.forEach(entry => {
+                const entryDiv = document.createElement('div');
+                entryDiv.innerHTML = `<strong>${entry.dateTime}</strong><p>${entry.content}</p><hr>`;
+                savedHistoryDiv.appendChild(entryDiv);
+            });
+        }
+
+        // Call updateSavedHistory when page loads
+        window.onload = function () {
+            updateSavedHistory();
+        };
     </script>
 </body>
 
