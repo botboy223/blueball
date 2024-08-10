@@ -20,7 +20,6 @@ function switchToOption1() {
     document.getElementById('option2').style.display = 'none';
     document.getElementById('option3').style.display = 'none';
     document.getElementById('option4').style.display = 'none';
-    document.getElementById('option5').style.display = 'none';
 }
 
 function switchToOption2() {
@@ -28,7 +27,6 @@ function switchToOption2() {
     document.getElementById('option2').style.display = 'block';
     document.getElementById('option3').style.display = 'none';
     document.getElementById('option4').style.display = 'none';
-    document.getElementById('option5').style.display = 'none';
 }
 
 function switchToOption3() {
@@ -36,7 +34,6 @@ function switchToOption3() {
     document.getElementById('option2').style.display = 'none';
     document.getElementById('option3').style.display = 'block';
     document.getElementById('option4').style.display = 'none';
-    document.getElementById('option5').style.display = 'none';
 }
 
 function switchToOption4() {
@@ -44,22 +41,12 @@ function switchToOption4() {
     document.getElementById('option2').style.display = 'none';
     document.getElementById('option3').style.display = 'none';
     document.getElementById('option4').style.display = 'block';
-    document.getElementById('option5').style.display = 'none';
-}
-
-function switchToOption5() {
-    document.getElementById('option1').style.display = 'none';
-    document.getElementById('option2').style.display = 'none';
-    document.getElementById('option3').style.display = 'none';
-    document.getElementById('option4').style.display = 'none';
-    document.getElementById('option5').style.display = 'block';
 }
 
 domReady(function () {
     let productDetails = loadFromLocalStorage('productDetails') || {};
     let cart = [];
     let upiDetails = loadFromLocalStorage('upiDetails') || {};
-    let billHistory = loadFromLocalStorage('billHistory') || [];
 
     function onScanSuccessOption1(decodeText, decodeResult) {
         document.getElementById('barcode').value = decodeText;
@@ -96,8 +83,10 @@ domReady(function () {
         cart.forEach((item, index) => {
             const product = productDetails[item.code];
             const itemDiv = document.createElement('div');
-            itemDiv.innerHTML = `${item.code} - ₹${product.price} - ${product.name} 
-                Quantity: <input type="number" value="${item.quantity}" min="1" data-index="${index}">`;
+            itemDiv.innerHTML = `
+                ${item.code} - ₹${product.price} - ${product.name} 
+                Quantity: <input type="number" value="${item.quantity}" min="1" data-index="${index}">
+            `;
             cartDiv.appendChild(itemDiv);
         });
 
@@ -166,15 +155,6 @@ domReady(function () {
         document.getElementById('bill-qr-code').innerHTML = "";
         qrCode.append(document.getElementById('bill-qr-code'));
 
-        // Save bill to history
-        const bill = {
-            date: new Date().toLocaleString(),
-            items: cart.map(item => ({ ...item, name: productDetails[item.code].name, price: productDetails[item.code].price })),
-            total: totalAmount
-        };
-        billHistory.push(bill);
-        saveToLocalStorage('billHistory', billHistory);
-
         alert('Total Bill: ₹' + totalAmount);
     });
 
@@ -195,8 +175,7 @@ domReady(function () {
         const data = {
             productDetails,
             cart,
-            upiDetails,
-            billHistory
+            upiDetails
         };
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -218,45 +197,35 @@ domReady(function () {
                 if (data.productDetails) productDetails = data.productDetails;
                 if (data.cart) cart = data.cart;
                 if (data.upiDetails) upiDetails = data.upiDetails;
-                if (data.billHistory) billHistory = data.billHistory;
                 saveToLocalStorage('productDetails', productDetails);
                 saveToLocalStorage('upiDetails', upiDetails);
-                saveToLocalStorage('billHistory', billHistory);
                 alert('Data imported successfully.');
             };
             reader.readAsText(file);
         }
     });
 
-    // Display bill history
-    function displayBillHistory() {
-        const historyDiv = document.getElementById('bill-history');
-        historyDiv.innerHTML = '';
+    let html5QrcodeScannerOption1 = new Html5QrcodeScanner(
+        "my-qr-reader-option1",
+        {
+            fps: 30,
+            qrbox: { width: 250, height: 250 },
+            experimentalFeatures: {
+                useBarCodeDetectorIfSupported: true
+            }
+        }
+    );
+    html5QrcodeScannerOption1.render(onScanSuccessOption1);
 
-        billHistory.forEach(bill => {
-            const billDiv = document.createElement('div');
-            billDiv.className = 'bill-entry';
-            billDiv.innerHTML = `
-                <h4>Bill Date: ${bill.date}</h4>
-                <ul>
-                    ${bill.items.map(item => `<li>${item.name} (x${item.quantity}): ₹${item.price * item.quantity}</li>`).join('')}
-                </ul>
-                <p><strong>Total: ₹${bill.total}</strong></p>
-            `;
-            historyDiv.appendChild(billDiv);
-        });
-    }
-
-    // Event listener for showing bill history
-    document.getElementById('bill-history-btn').addEventListener('click', () => {
-        displayBillHistory();
-        switchToOption5();
-    });
-
-    // Clear bill history
-    document.getElementById('clear-history').addEventListener('click', () => {
-        billHistory = [];
-        saveToLocalStorage('billHistory', billHistory);
-        displayBillHistory();
-    });
+    let html5QrcodeScannerOption2 = new Html5QrcodeScanner(
+        "my-qr-reader-option2",
+        {
+            fps: 30,
+            qrbox: { width: 250, height: 250 },
+            experimentalFeatures: {
+                useBarCodeDetectorIfSupported: true
+            }
+        }
+    );
+    html5QrcodeScannerOption2.render(onScanSuccessOption2);
 });
