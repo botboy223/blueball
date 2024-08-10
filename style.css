@@ -1,80 +1,38 @@
-/* Resetting default browser styles */
-body, h1, p, ul, li, div, section {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-/* Body styling */
 body {
     font-family: Arial, sans-serif;
-    background-color: rgb(128 0 0 / 66%);
+    background-color: #f5f5f5;
     margin: 0;
     padding: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    text-align: center;
 }
 
-/* Container styling */
 .container {
-    width: 100%;
     max-width: 600px;
     background-color: #ffffff;
     padding: 20px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
     text-align: center;
-}
-
-/* Header styling */
-.container h1 {
-    color: #ffffff;
-    background-color: #b22222;
-    padding: 10px;
-    border-radius: 8px;
-}
-
-/* Section styling */
-.section {
-    background-color: #ffffff;
-    padding: 30px;
-    border: 1.5px solid #b2b2b2;
-    border-radius: 0.25em;
-    box-shadow: 0 20px 25px rgba(0, 0, 0, 0.25);
-    margin-top: 20px;
-}
-
-/* QR Reader styling */
-#my-qr-reader {
-    padding: 20px;
-    border: 1.5px solid #b2b2b2;
-    border-radius: 8px;
-}
-
-#my-qr-reader img[alt="Info icon"],
-#my-qr-reader img[alt="Camera based scan"] {
-    display: none;
-}
-
-video {
     width: 100%;
-    border: 1px solid #b2b2b2;
-    border-radius: 0.25em;
 }
 
-/* Button styling */
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 button {
     padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    color: white;
     font-size: 16px;
     cursor: pointer;
+    border: none;
     background-color: #007bff;
-    margin: 10px 0;
+    color: white;
+    border-radius: 5px;
     transition: background-color 0.3s;
 }
 
@@ -82,14 +40,10 @@ button:hover {
     background-color: #0056b3;
 }
 
-/* Button group layout */
-.button-group {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+.option {
+    margin-top: 20px;
 }
 
-/* Input field styling */
 .input-group {
     display: flex;
     flex-direction: column;
@@ -99,7 +53,6 @@ button:hover {
 
 label {
     margin-bottom: 5px;
-    color: #333;
 }
 
 input {
@@ -109,21 +62,24 @@ input {
     border-radius: 5px;
 }
 
-/* Cart styling */
 #cart div {
     margin-top: 10px;
 }
 
-/* Responsive adjustments */
 @media (max-width: 600px) {
     .container {
         padding: 10px;
+    }
+
+    .button-group {
+        flex-direction: column;
     }
 
     button {
         width: 100%;
     }
 }
+
 
 /* New styles for import/export functionality */
 #option4 {
