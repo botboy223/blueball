@@ -162,11 +162,13 @@
         function switchToOption1() {
             hideAllOptions();
             document.getElementById('option1').classList.remove('hidden');
+            startQrScanner("my-qr-reader-option1");
         }
 
         function switchToOption2() {
             hideAllOptions();
             document.getElementById('option2').classList.remove('hidden');
+            startQrScanner("my-qr-reader-option2");
         }
 
         function switchToOption3() {
@@ -190,6 +192,27 @@
             document.getElementById('option3').classList.add('hidden');
             document.getElementById('option4').classList.add('hidden');
             document.getElementById('option5').classList.add('hidden');
+        }
+
+        function startQrScanner(elementId) {
+            const html5QrCode = new Html5Qrcode(elementId);
+            html5QrCode.start(
+                { facingMode: "environment" },
+                {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 }
+                },
+                (decodedText, decodedResult) => {
+                    console.log(`Code matched = ${decodedText}`, decodedResult);
+                    document.getElementById('barcode').value = decodedText;
+                    html5QrCode.stop().then(ignore => { }).catch(err => { });
+                },
+                (errorMessage) => {
+                    console.warn(`QR Code no match: ${errorMessage}`);
+                }
+            ).catch(err => {
+                console.error(`Unable to start scanning, error: ${err}`);
+            });
         }
     </script>
 </body>
