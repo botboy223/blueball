@@ -54,7 +54,10 @@
         <div class="button-group">
             <button id="moreButton" onclick="showMoreOptions()">More</button>
         </div>
-
+      <button id="option5-button" onclick="switchToOption5()">Bill History</button>
+    <div id="option5" class="option hidden">
+    <h2>Bill History</h2>
+    <div id="bill-history"></div>
         <div id="moreOptions" class="hidden">
             <button id="option1-button" onclick="switchToOption1()">Set Barcode Values</button>
             <button id="option3-button" onclick="switchToOption3()">UPI QR Code</button>
@@ -130,10 +133,7 @@
             <a href="https://drive.google.com/file/d/1zDukCzjcSFB8-73XQzS8Jtc1XftueKrI/view?usp=sharing" download>Download apk</a>
         </div>
     </div>
-    <button id="option5-button" onclick="switchToOption5()">Bill History</button>
-    <div id="option5" class="option hidden">
-    <h2>Bill History</h2>
-    <div id="bill-history"></div>
+  
 </div>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdn.jsdelivr.net/npm/qr-code-styling/lib/qr-code-styling.js"></script>
