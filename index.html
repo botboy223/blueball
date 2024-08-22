@@ -59,6 +59,7 @@
             <button id="option1-button" onclick="switchToOption1()">Set Barcode Values</button>
             <button id="option3-button" onclick="switchToOption3()">UPI QR Code</button>
             <button id="option4-button" onclick="switchToOption4()">Import/Export Data</button>
+             <button id="option5-button" onclick="switchToOption5()">Bill History</button>
             <!-- Button to trigger dialog box -->
             <button id="openDialogBtn">Download File</button>
             <!-- Home Page Button -->
@@ -81,12 +82,9 @@
             </div>
             <button id="save-barcode">Save</button>
         </div>
-        <button id="option5-button" onclick="switchToOption5()">Bill History</button>
+       
 
-<div id="option5" class="option hidden">
-    <h2>Bill History</h2>
-    <div id="bill-history"></div>
-</div>
+
 
         <div id="option2" class="option">
             <div id="my-qr-reader-option2"></div>
@@ -123,7 +121,10 @@
             <input type="file" id="upload-data" accept=".json">
         </div>
     </div>
-
+    <div id="option5" class="option hidden">
+    <h2>Bill History</h2>
+    <div id="bill-history"></div>
+</div>
     <!-- Dialog Box -->
     <div id="dialogBox" class="dialog">
         <div class="dialog-content">
