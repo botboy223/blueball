@@ -59,7 +59,7 @@
             <button id="option1-button" onclick="switchToOption1()">Set Barcode Values</button>
             <button id="option3-button" onclick="switchToOption3()">UPI QR Code</button>
             <button id="option4-button" onclick="switchToOption4()">Import/Export Data</button>
-             <button id="option5-button" onclick="switchToOption5()">Bill History</button>
+           
             <!-- Button to trigger dialog box -->
             <button id="openDialogBtn">Download File</button>
             <!-- Home Page Button -->
@@ -121,10 +121,7 @@
             <input type="file" id="upload-data" accept=".json">
         </div>
     </div>
-    <div id="option5" class="option hidden">
-    <h2>Bill History</h2>
-    <div id="bill-history"></div>
-</div>
+ 
     <!-- Dialog Box -->
     <div id="dialogBox" class="dialog">
         <div class="dialog-content">
@@ -133,7 +130,11 @@
             <a href="https://drive.google.com/file/d/1zDukCzjcSFB8-73XQzS8Jtc1XftueKrI/view?usp=sharing" download>Download apk</a>
         </div>
     </div>
-
+    <button id="option5-button" onclick="switchToOption5()">Bill History</button>
+    <div id="option5" class="option hidden">
+    <h2>Bill History</h2>
+    <div id="bill-history"></div>
+</div>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdn.jsdelivr.net/npm/qr-code-styling/lib/qr-code-styling.js"></script>
     <script src="script.js"></script>
