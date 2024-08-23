@@ -6,50 +6,117 @@
     <link rel="stylesheet" href="style.css">
     <title>QR Code Scanner / Reader</title>
     <style>
-        .dialog {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.4);
+        /* Your existing CSS */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
 
-        .dialog-content {
-            background-color: #fefefe;
-            margin: 15% auto;
+        .container {
+            max-width: 600px;
+            background-color: #ffffff;
             padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 500px;
-            position: relative;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            text-align: center;
+            width: 100%;
+            position: relative; /* Make the container the positioning context */
         }
 
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
             cursor: pointer;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            transition: background-color 0.3s;
         }
 
-        .close:hover,
-        .close:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
+        button:hover {
+            background-color: #0056b3;
         }
 
-        .hidden {
-            display: none;
+        .option {
+            margin-top: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            margin-top: 10px;
+            text-align: left;
+        }
+
+        label {
+            margin-bottom: 5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #cart div {
+            margin-top: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+
+        /* New styles for import/export functionality */
+        #option4 {
+            margin-top: 20px;
+        }
+
+        #upload-data {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        /* Overlay to make the black circle area unclickable */
+        .unclickable-overlay {
+            position: absolute;
+            top: 20px; /* Adjust based on the position of the black circle */
+            right: 20px; /* Adjust based on the position of the black circle */
+            width: 100px; /* Adjust based on the size of the black circle */
+            height: 100px; /* Adjust based on the size of the black circle */
+            pointer-events: none; /* Makes the area non-interactive */
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="unclickable-overlay"></div> <!-- Overlay to make the area unclickable -->
+        
         <h1>QR Code Scanner</h1>
         <div class="button-group">
             <button id="moreButton" onclick="showMoreOptions()">More</button>
@@ -189,4 +256,4 @@
         }
     </script>
 </body>
-</html> 
+</html>
