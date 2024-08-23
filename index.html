@@ -46,9 +46,37 @@
         .hidden {
             display: none;
         }
+
+        /* Overlay to block screen touches */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0);
+            z-index: 2;
+        }
+
+        /* Exclude blue buttons from the overlay */
+        .button-group button,
+        #generate-bill,
+        #save-barcode,
+        #moreOptions button,
+        #closeDialogBtn,
+        #openDialogBtn,
+        #download-data,
+        #homePageBtn {
+            position: relative;
+            z-index: 3;
+            pointer-events: auto; /* Make blue buttons clickable */
+        }
     </style>
 </head>
 <body>
+    <!-- Overlay to block all interactions except blue buttons -->
+    <div class="overlay"></div>
+
     <div class="container">
         <h1>QR Code Scanner</h1>
         <div class="button-group">
