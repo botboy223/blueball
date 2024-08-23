@@ -80,7 +80,6 @@ input {
     }
 }
 
-
 /* New styles for import/export functionality */
 #option4 {
     margin-top: 20px;
@@ -91,4 +90,9 @@ input {
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
+}
+
+/* Disable pointer events for ScanApp widget */
+.scanapp-widget {
+    pointer-events: none; /* This disables all pointer events */
 }
