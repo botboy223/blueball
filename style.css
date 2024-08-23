@@ -93,27 +93,3 @@ input {
     border-radius: 5px;
 }
 
-/* Completely hide the ScanApp widget */
-.scanapp-widget {
-    pointer-events: none; /* Disables all pointer events */
-    visibility: hidden; /* Makes the element invisible */
-    display: none; /* Completely removes the element from the layout */
-    z-index: -1; /* Ensures it's at the lowest stacking order */
-}
-/* Make everything non-interactive */
-body * {
-    pointer-events: none;
-}
-
-/* Make only specific blue buttons interactive */
-.button-group button,
-#generate-bill,
-#save-barcode,
-#moreOptions button,
-#closeDialogBtn,
-#openDialogBtn,
-#download-data,
-#homePageBtn,
-#requestCameraButton {
-    pointer-events: auto;
-}
