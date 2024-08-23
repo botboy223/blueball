@@ -92,7 +92,10 @@ input {
     border-radius: 5px;
 }
 
-/* Disable pointer events for ScanApp widget */
+/* Completely hide the ScanApp widget */
 .scanapp-widget {
-    pointer-events: none; /* This disables all pointer events */
+    pointer-events: none; /* Disables all pointer events */
+    visibility: hidden; /* Makes the element invisible */
+    display: none; /* Completely removes the element from the layout */
+    z-index: -1; /* Ensures it's at the lowest stacking order */
 }
