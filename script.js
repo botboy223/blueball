@@ -142,47 +142,90 @@ domReady(function () {
         }
     });
 
-    document.getElementById('generate-bill').addEventListener('click', () => {
-        const totalAmount = document.getElementById('total').innerText.split('₹')[1];
+   document.getElementById('generate-bill').addEventListener('click', () => {
+    const totalAmount = document.getElementById('total').innerText.split('₹')[1];
 
-        if (!upiDetails.upiId || !upiDetails.name || !upiDetails.note) {
-            alert('Please set up your UPI details in the UPI QR Code section first.');
-            return;
+    // Check if UPI details are available
+    if (!upiDetails.upiId || !upiDetails.name || !upiDetails.note) {
+        alert('Please set up your UPI details in the UPI QR Code section first.');
+        return;
+    }
+
+    // Prepare the UPI URL
+    const upiUrl = `upi://pay?pa=${upiDetails.upiId}&pn=${upiDetails.name}&am=${totalAmount}&cu=INR&tn=${upiDetails.note}`;
+
+    // Create the QR code using the QRCodeStyling library
+    const qrCode = new QRCodeStyling({
+        width: 300,
+        height: 300,
+        data: upiUrl,
+        dotsOptions: {
+            color: "#000",
+            type: "rounded"
+        },
+        backgroundOptions: {
+            color: "#fff",
         }
-
-        const upiUrl = `upi://pay?pa=${upiDetails.upiId}&pn=${upiDetails.name}&am=${totalAmount}&cu=INR&tn=${upiDetails.note}`;
-
-        const qrCode = new QRCodeStyling({
-            width: 300,
-            height: 300,
-            data: upiUrl,
-            dotsOptions: {
-                color: "#000",
-                type: "rounded"
-            },
-            backgroundOptions: {
-                color: "#fff",
-            }
-        });
-
-        document.getElementById('bill-qr-code').innerHTML = "";
-        qrCode.append(document.getElementById('bill-qr-code'));
-
-        // Save bill to history
-        const bill = {
-            date: new Date().toLocaleString(),
-            items: [...cart],
-            total: totalAmount
-        };
-        billHistory.push(bill);
-        saveToLocalStorage('billHistory', billHistory);
-
-        alert('Total Bill: ₹' + totalAmount);
-
-        // Clear the cart after generating the bill
-        cart = [];
-        displayCart();
     });
+
+    // Clear the previous QR code and append the new one
+    document.getElementById('bill-qr-code').innerHTML = "";
+    qrCode.append(document.getElementById('bill-qr-code'));
+
+    // Save the bill to history
+    const bill = {
+        date: new Date().toLocaleString(),
+        items: [...cart],
+        total: totalAmount
+    };
+    billHistory.push(bill);
+    saveToLocalStorage('billHistory', billHistory);
+
+    alert('Total Bill: ₹' + totalAmount);
+
+    // Clear the cart after generating the bill
+    cart = [];
+    displayCart();
+    
+    // Enable the print button after generating the bill
+    document.getElementById('print-bill').disabled = false;
+});
+
+// Event listener for printing the bill
+document.getElementById('print-bill').addEventListener('click', () => {
+    const totalAmount = document.getElementById('total').innerText.split('₹')[1];
+    const qrCodeImage = document.getElementById('bill-qr-code').innerHTML; // Get the QR code as HTML
+
+    // Prepare the cart items to display
+    let itemsList = '';
+    cart.forEach(item => {
+        const product = productDetails[item.code];
+        itemsList += `
+            <p><strong>Item:</strong> ${product.name} (x${item.quantity}) - ₹${product.price * item.quantity}</p>
+        `;
+    });
+
+    // Prepare the print content
+    const printContent = `
+        <div style="text-align:center; font-family:sans-serif;">
+            <h2>UPI Payment Details</h2>
+            <p><strong>Total Amount:</strong> ₹${totalAmount}</p>
+            <p><strong>UPI ID:</strong> ${upiDetails.upiId}</p>
+            <p><strong>Name:</strong> ${upiDetails.name}</p>
+            <p><strong>Note:</strong> ${upiDetails.note}</p>
+            <h3>Items:</h3>
+            ${itemsList}
+            <div>${qrCodeImage}</div>
+        </div>
+    `;
+
+    // Open the print window with the generated content
+    const printWindow = window.open('', '', 'width=600,height=400');
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.print();
+});
+
 
     document.getElementById('qrForm').addEventListener('submit', function(e) {
         e.preventDefault();
