@@ -4,78 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
-    <title>QR Code Scanner with Inventory</title>
-    <style>
-        .dialog {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.4);
-        }
-
-        .dialog-content {
-            background-color: #fefefe;
-            margin: 15% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 500px;
-            position: relative;
-        }
-
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .close:hover,
-        .close:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
-
-        .hidden { display: none; }
-
-        /* Inventory Styles */
-        #inventoryTable {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
-
-        #inventoryTable td, #inventoryTable th {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-
-        .dashboard {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .metric-box, .low-stock-alert {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .low-stock-alert { background: #fff3cd; }
-
-        input[type="number"] { width: 60px; }
-    </style>
+    <title>QR Code Scanner / Inventory</title>
+    <script src="inventory.js"></script>
 </head>
 <body>
     <div class="container">
@@ -85,120 +15,110 @@
         </div>
 
         <div id="moreOptions" class="hidden">
-            <button onclick="switchToOption1()">Set Barcode Values</button>
-            <button onclick="switchToOption3()">UPI QR Code</button>
-            <button onclick="switchToOption4()">Import/Export Data</button>
-            <button onclick="switchToOption5()">Bill History</button>
-            <button onclick="switchToOption6()">Inventory</button>
-            <button id="openDialogBtn">Download File</button>
-            <button onclick="window.location.href='https://qrwale.in/'">Home Page</button>
+            <button id="option1-button" onclick="switchToOption1()">Set Barcode Values</button>
+            <button id="option3-button" onclick="switchToOption3()">UPI QR Code</button>
+            <button id="option4-button" onclick="switchToOption4()">Import/Export Data</button>
+            <button id="option5-button" onclick="switchToOption5()">Bill History</button>
+            <button id="inventory-button" onclick="showInventory()">Inventory</button>
         </div>
 
-        <!-- Product Setup Section -->
-        <div id="option1" class="option hidden">
-            <div id="my-qr-reader-option1"></div>
-            <div class="input-group">
-                <label for="barcode">Barcode:</label>
-                <input type="text" id="barcode" readonly>
-            </div>
-            <div class="input-group">
-                <label for="product-name">Product Name:</label>
-                <input type="text" id="product-name">
-            </div>
-            <div class="input-group">
-                <label for="product-price">Product Price:</label>
-                <input type="number" id="product-price">
-            </div>
-            <button id="save-barcode">Save</button>
-        </div>
-
-        <!-- Cart Section -->
-        <div id="option2" class="option">
-            <div id="my-qr-reader-option2"></div>
-            <h2>Cart</h2>
-            <div id="cart"></div>
-            <div id="total">Total: Rs.0</div>
-            <button id="generate-bill">Generate Bill</button>
-            <div id="bill-qr-code"></div>
-        </div>
-
-        <!-- UPI Section -->
-        <div id="option3" class="option hidden">
-            <h2>UPI QR Code Generator</h2>
-            <form id="qrForm">
-                <div class="input-group">
-                    <label for="upi_id">UPI ID:</label>
-                    <input type="text" id="upi_id" name="upi_id" required>
-                </div>
-                <div class="input-group">
-                    <label for="name">Name:</label>
-                    <input type="text" id="name" name="name" required>
-                </div>
-                <div class="input-group">
-                    <label for="note">Transaction Note:</label>
-                    <input type="text" id="note" name="note" required>
-                </div>
-                <button type="submit">Save UPI Details</button>
-            </form>
-            <div id="qrCode"></div>
-        </div>
-
-        <!-- Data Management -->
-        <div id="option4" class="option hidden">
-            <h2>Import/Export Data</h2>
-            <button id="download-data">Download Data</button>
-            <input type="file" id="upload-data" accept=".json">
-        </div>
-
-        <!-- Bill History -->
-        <div id="option5" class="option hidden">
-            <h2>Bill History</h2>
-            <div id="bill-history"></div>
-        </div>
-
-        <!-- Inventory Management -->
-        <div id="option6" class="option hidden">
+        <div id="inventory-section" class="option hidden">
             <h2>Inventory Management</h2>
-            <div class="dashboard">
-                <div class="metric-box">
-                    <h3>Today's Sales: <span id="todaySales">Rs.0</span></h3>
-                    <h3>Total Sales: <span id="totalSales">Rs.0</span></h3>
-                </div>
-                <div class="low-stock-alert">
-                    <h3>Low Stock Items (&lt;5)</h3>
-                    <div id="lowStockList"></div>
-                </div>
-            </div>
-            <table id="inventoryTable">
-                <thead>
-                    <tr>
-                        <th>Barcode</th>
-                        <th>Product</th>
-                        <th>Price</th>
-                        <th>Quantity</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="inventoryList"></tbody>
+            <table id="inventory-table">
+                <tr>
+                    <th>Barcode</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Actions</th>
+                </tr>
             </table>
-        </div>
-
-        <!-- Download Dialog -->
-        <div id="dialogBox" class="dialog">
-            <div class="dialog-content">
-                <span id="closeDialogBtn" class="close">&times;</span>
-                <p>Click the link below to download the file:</p>
-                <a href="https://drive.google.com/file/d/1zDukCzjcSFB8-73XQzS8Jtc1XftueKrI/view?usp=sharing" download>
-                    Download apk
-                </a>
-            </div>
+            <button onclick="addNewProduct()">Add Product</button>
         </div>
     </div>
 
-    <!-- External Dependencies -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qr-code-styling/lib/qr-code-styling.js"></script>
     <script src="script.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            loadInventory();
+        });
+
+        let inventory = JSON.parse(localStorage.getItem("inventory")) || [];
+
+        function loadInventory() {
+            let table = document.getElementById("inventory-table");
+            table.innerHTML = `<tr>
+                <th>Barcode</th>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Actions</th>
+            </tr>`;
+
+            inventory.forEach((item, index) => {
+                let row = table.insertRow();
+                row.innerHTML = `
+                    <td>${item.barcode}</td>
+                    <td><input type="text" value="${item.name}" onchange="editInventory(${index}, 'name', this.value)"></td>
+                    <td><input type="number" value="${item.price}" onchange="editInventory(${index}, 'price', this.value)"></td>
+                    <td><input type="number" value="${item.quantity}" onchange="editInventory(${index}, 'quantity', this.value)"></td>
+                    <td><button onclick="deleteProduct(${index})">Delete</button></td>
+                `;
+            });
+        }
+
+        function saveInventory() {
+            localStorage.setItem("inventory", JSON.stringify(inventory));
+        }
+
+        function editInventory(index, key, value) {
+            inventory[index][key] = key === 'price' || key === 'quantity' ? parseFloat(value) : value;
+            saveInventory();
+        }
+
+        function deleteProduct(index) {
+            inventory.splice(index, 1);
+            saveInventory();
+            loadInventory();
+        }
+
+        function addNewProduct() {
+            let barcode = prompt("Enter Barcode:");
+            let name = prompt("Enter Product Name:");
+            let price = parseFloat(prompt("Enter Product Price:"));
+            let quantity = parseInt(prompt("Enter Quantity:"));
+
+            if (barcode && name && !isNaN(price) && !isNaN(quantity)) {
+                inventory.push({ barcode, name, price, quantity });
+                saveInventory();
+                loadInventory();
+            } else {
+                alert("Invalid Input!");
+            }
+        }
+
+        function updateInventory(barcode, quantitySold) {
+            let product = inventory.find(item => item.barcode === barcode);
+            if (product) {
+                product.quantity -= quantitySold;
+                if (product.quantity < 0) product.quantity = 0;
+                saveInventory();
+                loadInventory();
+            }
+        }
+
+        function generateBill() {
+            let cartItems = JSON.parse(localStorage.getItem("cart")) || [];
+            cartItems.forEach(item => {
+                updateInventory(item.barcode, item.quantity);
+            });
+            localStorage.setItem("cart", JSON.stringify([]));
+        }
+
+        function showInventory() {
+            hideAllOptions();
+            document.getElementById("inventory-section").style.display = "block";
+        }
+    </script>
 </body>
 </html>
