@@ -138,3 +138,41 @@ button:hover {
     margin: 20px auto;
     border: 2px dashed #ccc;
 }
+/* Inventory Management Styles */
+#stock-scanner-container {
+    width: 300px;
+    height: 300px;
+    margin: 20px auto;
+    border: 2px dashed #ccc;
+}
+
+.inventory-item {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 15px;
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    align-items: center;
+}
+
+#add-stock-form {
+    margin-top: 20px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#add-stock-form input {
+    display: block;
+    width: 100%;
+    margin: 10px 0;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#add-stock-form button {
+    margin-top: 15px;
+    background-color: #28a745;
+}
