@@ -4,8 +4,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
-    <title>QR Code Scanner / Inventory</title>
-    <script src="inventory.js"></script>
+    <title>QR Code Scanner / Reader</title>
+    <style>
+        .dialog {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .dialog-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -19,105 +60,150 @@
             <button id="option3-button" onclick="switchToOption3()">UPI QR Code</button>
             <button id="option4-button" onclick="switchToOption4()">Import/Export Data</button>
             <button id="option5-button" onclick="switchToOption5()">Bill History</button>
-            <button id="inventory-button" onclick="showInventory()">Inventory</button>
+            <button id="option6-button" onclick="switchToOption6()">Inventory Management</button>
+            <button id="openDialogBtn">Download File</button>
+            <button id="homePageBtn" onclick="window.location.href='https://qrwale.in/'">Home Page</button>
         </div>
 
-        <div id="inventory-section" class="option hidden">
+        <div id="option1" class="option hidden">
+            <div id="my-qr-reader-option1"></div>
+            <div class="input-group">
+                <label for="barcode">Barcode:</label>
+                <input type="text" id="barcode" readonly>
+            </div>
+            <div class="input-group">
+                <label for="product-name">Product Name:</label>
+                <input type="text" id="product-name">
+            </div>
+            <div class="input-group">
+                <label for="product-price">Product Price:</label>
+                <input type="number" id="product-price">
+            </div>
+            <button id="save-barcode">Save</button>
+        </div>
+
+        <div id="option2" class="option">
+            <div id="my-qr-reader-option2"></div>
+            <h2>Cart</h2>
+            <div id="cart"></div>
+            <div id="total">Total: Rs.0</div>
+            <button id="generate-bill">Generate Bill</button>
+            <div id="bill-qr-code"></div>
+        </div>
+
+        <div id="option3" class="option hidden">
+            <h2>UPI QR Code Generator</h2>
+            <form id="qrForm">
+                <div class="input-group">
+                    <label for="upi_id">UPI ID:</label>
+                    <input type="text" id="upi_id" name="upi_id" required>
+                </div>
+                <div class="input-group">
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="input-group">
+                    <label for="note">Transaction Note:</label>
+                    <input type="text" id="note" name="note" required>
+                </div>
+                <button type="submit">Save UPI Details</button>
+            </form>
+            <div id="qrCode"></div>
+        </div>
+
+        <div id="option4" class="option hidden">
+            <h2>Import/Export Data</h2>
+            <button id="download-data">Download Data</button>
+            <input type="file" id="upload-data" accept=".json">
+        </div>
+
+        <div id="option5" class="option hidden">
+            <h2>Bill History</h2>
+            <div id="bill-history"></div>
+        </div>
+
+        <div id="option6" class="option hidden">
             <h2>Inventory Management</h2>
-            <table id="inventory-table">
-                <tr>
-                    <th>Barcode</th>
-                    <th>Name</th>
-                    <th>Price</th>
-                    <th>Quantity</th>
-                    <th>Actions</th>
-                </tr>
-            </table>
-            <button onclick="addNewProduct()">Add Product</button>
+            <div id="inventory-list"></div>
+            <button onclick="showAddStockForm()">Add Stock</button>
+            <div id="add-stock-form" class="hidden">
+                <input type="text" id="stock-barcode" placeholder="Scan barcode">
+                <input type="number" id="stock-quantity" placeholder="Quantity">
+                <input type="number" id="low-stock-alert" placeholder="Low Stock Alert">
+                <button onclick="updateStock()">Update Stock</button>
+            </div>
         </div>
     </div>
 
+    <div id="dialogBox" class="dialog">
+        <div class="dialog-content">
+            <span id="closeDialogBtn" class="close">&times;</span>
+            <p>Click the link below to download the file:</p>
+            <a href="https://drive.google.com/file/d/1zDukCzjcSFB8-73XQzS8Jtc1XftueKrI/view?usp=sharing" download>Download apk</a>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qr-code-styling/lib/qr-code-styling.js"></script>
     <script src="script.js"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            loadInventory();
-        });
+        document.getElementById('openDialogBtn').onclick = function() {
+            document.getElementById('dialogBox').style.display = 'block';
+        };
 
-        let inventory = JSON.parse(localStorage.getItem("inventory")) || [];
+        document.getElementById('closeDialogBtn').onclick = function() {
+            document.getElementById('dialogBox').style.display = 'none';
+        };
 
-        function loadInventory() {
-            let table = document.getElementById("inventory-table");
-            table.innerHTML = `<tr>
-                <th>Barcode</th>
-                <th>Name</th>
-                <th>Price</th>
-                <th>Quantity</th>
-                <th>Actions</th>
-            </tr>`;
-
-            inventory.forEach((item, index) => {
-                let row = table.insertRow();
-                row.innerHTML = `
-                    <td>${item.barcode}</td>
-                    <td><input type="text" value="${item.name}" onchange="editInventory(${index}, 'name', this.value)"></td>
-                    <td><input type="number" value="${item.price}" onchange="editInventory(${index}, 'price', this.value)"></td>
-                    <td><input type="number" value="${item.quantity}" onchange="editInventory(${index}, 'quantity', this.value)"></td>
-                    <td><button onclick="deleteProduct(${index})">Delete</button></td>
-                `;
-            });
-        }
-
-        function saveInventory() {
-            localStorage.setItem("inventory", JSON.stringify(inventory));
-        }
-
-        function editInventory(index, key, value) {
-            inventory[index][key] = key === 'price' || key === 'quantity' ? parseFloat(value) : value;
-            saveInventory();
-        }
-
-        function deleteProduct(index) {
-            inventory.splice(index, 1);
-            saveInventory();
-            loadInventory();
-        }
-
-        function addNewProduct() {
-            let barcode = prompt("Enter Barcode:");
-            let name = prompt("Enter Product Name:");
-            let price = parseFloat(prompt("Enter Product Price:"));
-            let quantity = parseInt(prompt("Enter Quantity:"));
-
-            if (barcode && name && !isNaN(price) && !isNaN(quantity)) {
-                inventory.push({ barcode, name, price, quantity });
-                saveInventory();
-                loadInventory();
-            } else {
-                alert("Invalid Input!");
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('dialogBox')) {
+                document.getElementById('dialogBox').style.display = 'none';
             }
+        };
+
+        function showMoreOptions() {
+            document.getElementById('moreOptions').classList.toggle('hidden');
         }
 
-        function updateInventory(barcode, quantitySold) {
-            let product = inventory.find(item => item.barcode === barcode);
-            if (product) {
-                product.quantity -= quantitySold;
-                if (product.quantity < 0) product.quantity = 0;
-                saveInventory();
-                loadInventory();
-            }
-        }
-
-        function generateBill() {
-            let cartItems = JSON.parse(localStorage.getItem("cart")) || [];
-            cartItems.forEach(item => {
-                updateInventory(item.barcode, item.quantity);
-            });
-            localStorage.setItem("cart", JSON.stringify([]));
-        }
-
-        function showInventory() {
+        function switchToOption1() {
             hideAllOptions();
-            document.getElementById("inventory-section").style.display = "block";
+            document.getElementById('option1').style.display = 'block';
+        }
+
+        function switchToOption2() {
+            hideAllOptions();
+            document.getElementById('option2').style.display = 'block';
+        }
+
+        function switchToOption3() {
+            hideAllOptions();
+            document.getElementById('option3').style.display = 'block';
+        }
+
+        function switchToOption4() {
+            hideAllOptions();
+            document.getElementById('option4').style.display = 'block';
+        }
+
+        function switchToOption5() {
+            hideAllOptions();
+            document.getElementById('option5').style.display = 'block';
+        }
+
+        function switchToOption6() {
+            hideAllOptions();
+            document.getElementById('option6').style.display = 'block';
+            updateInventoryUI();
+        }
+
+        function hideAllOptions() {
+            document.getElementById('option1').style.display = 'none';
+            document.getElementById('option2').style.display = 'none';
+            document.getElementById('option3').style.display = 'none';
+            document.getElementById('option4').style.display = 'none';
+            document.getElementById('option5').style.display = 'none';
+            document.getElementById('option6').style.display = 'none';
         }
     </script>
 </body>
