@@ -3,201 +3,241 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
+    <title>QRwale - POS & Inventory System</title>
     
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-<script type="text/javascript" src="https://platform-api.sharethis.com/js/sharethis.js#property=678614abc1886b001ae16ed0&product=inline-share-buttons&source=platform" async="async"></script>
-    <title>QR Code Scanner / Reader</title>
+    <!-- Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@latest/dist/jspdf.umd.min.js"></script>
+    <script src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.4/html5-qrcode.min.js"></script>
+    
     <style>
-        .dialog {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.4);
+        /* Basic CSS Reset */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; }
+
+        /* Navigation */
+        .nav-bar { 
+            display: flex; 
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+        }
+        .nav-button { 
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
         }
 
-        .dialog-content {
-            background-color: #fefefe;
-            margin: 15% auto;
+        /* Content Sections */
+        .content-section { 
+            display: none;
             padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 500px;
-            position: relative;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 20px;
         }
+        .active-section { display: block; }
 
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
+        /* Forms */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input[type="text"], 
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
+        button { padding: 8px 15px; }
 
-        .close:hover,
-        .close:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
+        /* Cart Items */
+        .cart-item {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
         }
+        .quantity-input { width: 60px; }
 
-        .hidden {
-            display: none;
+        /* Inventory Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th { background: #f5f5f5; }
+
+        /* Dashboard */
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .low-stock { margin-top: 30px; }
+
+        /* QR Scanners */
+        .qr-scanner-box {
+            width: 300px;
+            height: 300px;
+            margin: 20px 0;
+            border: 2px dashed #ccc;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>QR Code Scanner</h1>
-        <div class="button-group">
-            <button id="moreButton" onclick="showMoreOptions()">More</button>
-        </div>
-
-        <div id="moreOptions" class="hidden">
-            <button id="option1-button" onclick="switchToOption1()">Set Barcode Values</button>
-            <button id="option3-button" onclick="switchToOption3()">UPI QR Code</button>
-            <button id="option4-button" onclick="switchToOption4()">Import/Export Data</button>
-            <button id="option5-button" onclick="switchToOption5()">Bill History</button>
-            <!-- Button to trigger dialog box -->
-            <button id="openDialogBtn">Download File</button>
-            <!-- Home Page Button -->
-            <button id="homePageBtn" onclick="window.location.href='index'">Home Page</button>
-        </div>
-
-        <div id="option1" class="option hidden">
-            <div id="my-qr-reader-option1"></div>
-            <div class="input-group">
-                <label for="barcode">Barcode:</label>
-                <input type="text" id="barcode" readonly>
-            </div>
-            <div class="input-group">
-                <label for="product-name">Product Name:</label>
-                <input type="text" id="product-name">
-            </div>
-            <div class="input-group">
-                <label for="product-price">Product Price:</label>
-                <input type="number" id="product-price">
-            </div>
-            <button id="save-barcode">Save</button>
-        </div>
-
-        <div id="option2" class="option">
-            <div id="my-qr-reader-option2"></div>
-            <h2>Cart</h2>
-            <div id="cart"></div>
-            <div id="total">Total: ₹0</div>
-            <button id="generate-bill">Generate Bill</button>
-            <button id="print-bill">Print Bill</button>
-            <div id="bill-qr-code"></div>
-           
-        </div>
-
-        <div id="option3" class="option hidden">
-            <h2>UPI QR Code Generator</h2>
-            <form id="qrForm">
-                <div class="input-group">
-                    <label for="upi_id">UPI ID (e.g., 9545689031@paytm):</label>
-                    <input type="text" id="upi_id" name="upi_id" required>
-                </div>
-                <div class="input-group">
-                    <label for="name">Name (e.g., hello):</label>
-                    <input type="text" id="name" name="name" required>
-                </div>
-                <div class="input-group">
-                    <label for="note">Transaction Note (e.g., note):</label>
-                    <input type="text" id="note" name="note" required>
-                </div>
-                <button type="submit">Save UPI Details</button>
-            </form>
-            <div id="qrCode"></div>
-        </div>
-
-        <div id="option4" class="option hidden">
-            <h2>Import/Export Data</h2>
-            <button id="download-data">Download Data</button>
-            <input type="file" id="upload-data" accept=".json">
-        </div>
-
-        <div id="option5" class="option hidden">
-            <h2>Bill History</h2>
-            <div id="bill-history"></div>
-        </div>
-         
-        <a href="user.php"><button type="button" class="btn">User Dashboard</button></a>
-        
-    </div>
-
-    <!-- Dialog Box -->
-    <div id="dialogBox" class="dialog">
-        <div class="dialog-content">
-            <span id="closeDialogBtn" class="close">&times;</span>
-            <p>Click the link below to download the file:</p>
-            <a href="https://drive.google.com/file/d/1zDukCzjcSFB8-73XQzS8Jtc1XftueKrI/view?usp=sharing" download>Download apk</a>
-        </div>
-    </div>
-
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qr-code-styling/lib/qr-code-styling.js"></script>
-    <script src="js/script.js"></script>
-    <script>
-        document.getElementById('openDialogBtn').onclick = function() {
-            document.getElementById('dialogBox').style.display = 'block';
-        };
-
-        document.getElementById('closeDialogBtn').onclick = function() {
-            document.getElementById('dialogBox').style.display = 'none';
-        };
-
-        window.onclick = function(event) {
-            if (event.target == document.getElementById('dialogBox')) {
-                document.getElementById('dialogBox').style.display = 'none';
-            }
-        };
-
-        function showMoreOptions() {
-            document.getElementById('moreOptions').classList.toggle('hidden');
-        }
-
-        function switchToOption1() {
-            hideAllOptions();
-            document.getElementById('option1').style.display = 'block';
-        }
-
-        function switchToOption2() {
-            hideAllOptions();
-            document.getElementById('option2').style.display = 'block';
-        }
-
-        function switchToOption3() {
-            hideAllOptions();
-            document.getElementById('option3').style.display = 'block';
-        }
-
-        function switchToOption4() {
-            hideAllOptions();
-            document.getElementById('option4').style.display = 'block';
-        }
-
-        function switchToOption5() {
-            hideAllOptions();
-            document.getElementById('option5').style.display = 'block';
-        }
-
-        function hideAllOptions() {
-            document.getElementById('option1').style.display = 'none';
-            document.getElementById('option2').style.display = 'none';
-            document.getElementById('option3').style.display = 'none';
-            document.getElementById('option4').style.display = 'none';
-            document.getElementById('option5').style.display = 'none';
-        }
-    </script>
+    <h1>QRwale POS System</h1>
     
+    <!-- Navigation Bar -->
+    <div class="nav-bar">
+        <button class="nav-button" data-section="option1">Product Setup</button>
+        <button class="nav-button" data-section="option2">Cart</button>
+        <button class="nav-button" data-section="option3">UPI Config</button>
+        <button class="nav-button" data-section="option5">Bill History</button>
+        <button class="nav-button" data-section="option6">Inventory</button>
+        <button class="nav-button" data-section="option7">Dashboard</button>
+    </div>
+
+    <!-- Product Setup -->
+    <div id="option1" class="content-section active-section">
+        <h2>Product Setup</h2>
+        <div id="my-qr-reader-option1" class="qr-scanner-box"></div>
+        <div class="form-group">
+            <label>Barcode:</label>
+            <input type="text" id="barcode" required>
+        </div>
+        <div class="form-group">
+            <label>Product Name:</label>
+            <input type="text" id="product-name" required>
+        </div>
+        <div class="form-group">
+            <label>Price:</label>
+            <input type="number" id="product-price" step="0.01" required>
+        </div>
+        <div class="form-group">
+            <label>Initial Quantity:</label>
+            <input type="number" id="product-quantity" required>
+        </div>
+        <div class="form-group">
+            <label>Low Stock Limit:</label>
+            <input type="number" id="low-limit" value="5" required>
+        </div>
+        <button id="save-barcode">Save Product</button>
+    </div>
+
+    <!-- Cart -->
+    <div id="option2" class="content-section">
+        <h2>Shopping Cart</h2>
+        <div id="my-qr-reader-option2" class="qr-scanner-box"></div>
+        <div id="cart"></div>
+        <div id="total" style="margin: 20px 0;"></div>
+        <button id="generate-bill">Generate Bill</button>
+        <div id="bill-qr-code"></div>
+    </div>
+
+    <!-- UPI Configuration -->
+    <div id="option3" class="content-section">
+        <h2>UPI Configuration</h2>
+        <form id="qrForm">
+            <div class="form-group">
+                <label>UPI ID:</label>
+                <input type="text" id="upi_id" required>
+            </div>
+            <div class="form-group">
+                <label>Account Name:</label>
+                <input type="text" id="name" required>
+            </div>
+            <div class="form-group">
+                <label>Payment Note:</label>
+                <input type="text" id="note" required>
+            </div>
+            <button type="submit">Save UPI Details</button>
+        </form>
+    </div>
+
+    <!-- Bill History -->
+    <div id="option5" class="content-section">
+        <h2>Bill History</h2>
+        <div id="bill-history"></div>
+    </div>
+
+    <!-- Inventory Management -->
+    <div id="option6" class="content-section">
+        <h2>Inventory Management</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Barcode</th>
+                    <th>Product Name</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Low Stock Limit</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="inventory-list"></tbody>
+        </table>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="option7" class="content-section">
+        <h2>Sales Dashboard</h2>
+        <div class="dashboard-stats">
+            <div class="stat-card">
+                <h3>Total Sales</h3>
+                <p id="total-sales">0.00</p>
+            </div>
+            <div class="stat-card">
+                <h3>Today's Sales</h3>
+                <p id="today-sales">0.00</p>
+            </div>
+        </div>
+        <div class="low-stock">
+            <h3>Low Stock Alerts</h3>
+            <ul id="low-stock-items"></ul>
+        </div>
+    </div>
+
+    <!-- Data Management -->
+    <div class="content-section" style="margin-top: 30px;">
+        <h2>Data Management</h2>
+        <button id="download-data">Export Data</button>
+        <input type="file" id="upload-data" accept=".json">
+        <label for="upload-data">Import Data</label>
+    </div>
+
+    <script src="qrwale.js"></script>
+    <script>
+        // Section switching logic
+        document.querySelectorAll('.nav-button').forEach(button => {
+            button.addEventListener('click', () => {
+                // Hide all sections
+                document.querySelectorAll('.content-section').forEach(section => {
+                    section.classList.remove('active-section');
+                });
+                // Show selected section
+                const sectionId = button.dataset.section;
+                document.getElementById(sectionId).classList.add('active-section');
+            });
+        });
+    </script>
 </body>
 </html>
