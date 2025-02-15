@@ -65,7 +65,6 @@ button:hover {
     }
 }
 
-/* Printable Bill Styling */
 .printable-bill {
     display: none;
     padding: 20px;
@@ -92,4 +91,44 @@ button:hover {
 
 .hidden {
     display: none;
+}
+
+.inventory-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.inventory-item span {
+    flex: 1;
+    text-align: left;
+    margin: 0 10px;
+}
+
+#add-stock-form {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f5f5f5;
+    border-radius: 8px;
+}
+
+#add-stock-form input {
+    margin: 5px 0;
+    padding: 8px;
+    width: 200px;
+}
+
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 10px 0;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.quantity-input {
+    width: 60px;
+    margin: 0 10px;
 }
