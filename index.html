@@ -60,6 +60,8 @@
             <button id="option3-button" onclick="switchToOption3()">UPI QR Code</button>
             <button id="option4-button" onclick="switchToOption4()">Import/Export Data</button>
             <button id="option5-button" onclick="switchToOption5()">Bill History</button>
+            <button id="option6-button" onclick="switchToOption6()">Inventory Management</button>
+            <button id="option7-button" onclick="switchToOption7()">Sales Dashboard</button>
             <button id="openDialogBtn">Download File</button>
             <button id="homePageBtn" onclick="window.location.href='https://qrwale.in/'">Home Page</button>
         </div>
@@ -123,22 +125,36 @@
     <script src="https://cdn.jsdelivr.net/npm/qr-code-styling/lib/qr-code-styling.js"></script>
     <script src="script.js"></script>
     <script>
-        document.getElementById('openDialogBtn').onclick = function() {
+        document.getElementById('openDialogBtn').addEventListener('click', function() {
             document.getElementById('dialogBox').style.display = 'block';
-        };
+        });
 
-        document.getElementById('closeDialogBtn').onclick = function() {
+        document.getElementById('closeDialogBtn').addEventListener('click', function() {
             document.getElementById('dialogBox').style.display = 'none';
-        };
+        });
 
-        window.onclick = function(event) {
-            if (event.target == document.getElementById('dialogBox')) {
+        window.addEventListener('click', function(event) {
+            if (event.target === document.getElementById('dialogBox')) {
                 document.getElementById('dialogBox').style.display = 'none';
             }
-        };
+        });
 
         function showMoreOptions() {
             document.getElementById('moreOptions').classList.toggle('hidden');
+        }
+
+        function switchToOption6() {
+            hideAllOptions();
+            document.getElementById('option6').classList.remove('hidden');
+        }
+
+        function switchToOption7() {
+            hideAllOptions();
+            document.getElementById('option7').classList.remove('hidden');
+        }
+
+        function hideAllOptions() {
+            document.querySelectorAll('.content-section').forEach(section => section.classList.add('hidden'));
         }
     </script>
 </body>
