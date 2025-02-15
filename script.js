@@ -1,158 +1,456 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <title>QR Code Scanner / Reader</title>
-    <style>
-        /* ... (keep existing styles the same) ... */
+function domReady(fn) {
+    if (document.readyState === "complete" || document.readyState === "interactive") {
+        setTimeout(fn, 1);
+    } else {
+        document.addEventListener("DOMContentLoaded", fn);
+    }
+}
+
+// Initialize jsPDF
+window.jsPDF = window.jspdf.jsPDF;
+
+function saveToLocalStorage(key, value) {
+    localStorage.setItem(key, JSON.stringify(value));
+}
+
+function loadFromLocalStorage(key) {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : null;
+}
+
+domReady(function () {
+    let productDetails = loadFromLocalStorage('productDetails') || {};
+    let cart = [];
+    let upiDetails = loadFromLocalStorage('upiDetails') || {};
+    let billHistory = loadFromLocalStorage('billHistory') || [];
+
+    // Scanner for Option 1 (Product Setup)
+    const html5QrcodeScannerOption1 = new Html5QrcodeScanner(
+        "my-qr-reader-option1",
+        { fps: 30, qrbox: { width: 250, height: 250 } }
+    );
+    html5QrcodeScannerOption1.render((decodeText) => {
+        document.getElementById('barcode').value = decodeText;
+        if (productDetails[decodeText]) {
+            document.getElementById('product-name').value = productDetails[decodeText].name;
+            document.getElementById('product-price').value = productDetails[decodeText].price;
+        } else {
+            document.getElementById('product-name').value = '';
+            document.getElementById('product-price').value = '';
+        }
+    });
+
+    // Scanner for Option 2 (Cart)
+    const html5QrcodeScannerOption2 = new Html5QrcodeScanner(
+        "my-qr-reader-option2",
+        { fps: 30, qrbox: { width: 250, height: 250 } }
+    );
+    html5QrcodeScannerOption2.render((decodeText) => {
+        if (productDetails[decodeText]) {
+            const existingItem = cart.find(item => item.code === decodeText);
+            // Always add new item with quantity 1 if not exists
+            if (!existingItem) {
+                cart.push({ code: decodeText, quantity: 1 });
+                displayCart();
+            }
+        } else {
+            alert(`Product ${decodeText} not found!`);
+        }
+    });
+
+
+    // Cart Display
+    function displayCart() {
+        const cartDiv = document.getElementById('cart');
+        cartDiv.innerHTML = '';
+        cart.forEach((item, index) => {
+            const product = productDetails[item.code];
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'cart-item';
+            itemDiv.innerHTML = `
+                <span class="product-name">${product?.name || 'Unknown Product'}</span>
+                <span class="product-price">Rs. ${product?.price?.toFixed(2) || '0.00'}</span>
+                <input type="number" 
+                       value="${item.quantity}" 
+                       min="1" 
+                       data-index="${index}"
+                       class="quantity-input">
+                <span class="item-total">Rs. ${(product?.price * item.quantity).toFixed(2) || '0.00'}</span>
+            `;
+            cartDiv.appendChild(itemDiv);
+        });
+        calculateTotal();
+    }
+
+    function calculateTotal() {
+        const total = cart.reduce((sum, item) => {
+            const product = productDetails[item.code];
+            return sum + (product?.price || 0) * item.quantity;
+        }, 0);
+        document.getElementById('total').innerHTML = `<strong>Total:</strong> Rs. ${total.toFixed(2)}`;
+    }
+
+    // Event Listeners
+    document.getElementById('cart').addEventListener('input', (e) => {
+        if (e.target.classList.contains('quantity-input')) {
+            const index = e.target.dataset.index;
+            const newQty = parseInt(e.target.value);
+            if (!isNaN(newQty) && newQty > 0) {
+                cart[index].quantity = newQty;
+                displayCart();
+            }
+        }
+    });
+
+    document.getElementById('save-barcode').addEventListener('click', () => {
+        const barcode = document.getElementById('barcode').value.trim();
+        const name = document.getElementById('product-name').value.trim();
+        const price = parseFloat(document.getElementById('product-price').value);
+
+        if (barcode && name && !isNaN(price) && price > 0) {
+            productDetails[barcode] = { name, price };
+            saveToLocalStorage('productDetails', productDetails);
+            alert('Product saved successfully!');
+        } else {
+            alert('Invalid input! Please check all fields.');
+        }
+    });
+
+    // PDF Generation
+    document.getElementById('generate-bill').addEventListener('click', async () => {
+        try {
+            // Validate UPI details
+            if (!upiDetails.upiId || !upiDetails.name || !upiDetails.note) {
+                throw new Error('Please configure UPI details first');
+            }
+
+            // Calculate total
+            const totalAmount = cart.reduce((sum, item) => {
+                const product = productDetails[item.code];
+                return sum + (product?.price || 0) * item.quantity;
+            }, 0);
+
+            // Generate UPI URL
+            const upiUrl = `upi://pay?pa=${upiDetails.upiId}` +
+                            `&pn=${encodeURIComponent(upiDetails.name)}` +
+                            `&am=${totalAmount.toFixed(2)}` +
+                            `&cu=INR` +
+                            `&tn=${encodeURIComponent(upiDetails.note)}`;
+
+            // Create QR Code
+            const qrCode = new QRCodeStyling({
+                width: 200,
+                height: 200,
+                data: upiUrl,
+                dotsOptions: {
+                    color: "#000",
+                    type: "rounded"
+                },
+                backgroundOptions: {
+                    color: "#ffffff"
+                }
+            });
+
+            // Render QR Code
+            const qrContainer = document.getElementById('bill-qr-code');
+            qrContainer.innerHTML = '';
+            qrCode.append(qrContainer);
+
+            // Wait for QR code rendering
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Create PDF
+            const doc = new jsPDF();
+            let yPos = 20;
+
+            // Header
+            doc.setFontSize(22);
+            doc.text("INVOICE", 105, yPos, { align: 'center' });
+            yPos += 15;
+
+            // Invoice Details
+            doc.setFontSize(12);
+            doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, yPos);
+            doc.text(`Time: ${new Date().toLocaleTimeString()}`, 160, yPos);
+            yPos += 15;
+
+            // Table Header
+            doc.setFillColor(240, 240, 240);
+            doc.rect(20, yPos, 170, 10, 'F');
+            doc.setFontSize(12);
+            doc.text("Item", 22, yPos + 7);
+            doc.text("Qty", 100, yPos + 7);
+            doc.text("Price", 160, yPos + 7);
+            yPos += 12;
+
+            // Items
+            cart.forEach(item => {
+                const product = productDetails[item.code];
+                doc.setFontSize(10);
+                doc.text(product?.name || 'Unknown Item', 22, yPos);
+                doc.text(item.quantity.toString(), 102, yPos);
+                doc.text(`Rs. ${(product?.price * item.quantity).toFixed(2)}`, 162, yPos);
+                yPos += 8;
+            });
+
+            // Total
+            yPos += 10;
+            doc.setFontSize(14);
+            doc.text(`Total Amount: Rs. ${totalAmount.toFixed(2)}`, 20, yPos);
+
+            // Add QR Code
+            const qrCanvas = qrContainer.querySelector('canvas');
+            if (qrCanvas) {
+                const qrData = qrCanvas.toDataURL('image/png');
+                doc.addImage(qrData, 'PNG', 140, yPos - 10, 50, 50);
+            }
+
+            // Save to history
+            billHistory.push({
+                date: new Date().toLocaleString(),
+                total: totalAmount.toFixed(2),
+                items: [...cart]
+            });
+            saveToLocalStorage('billHistory', billHistory);
+
+            // Open PDF
+            const pdfBlob = doc.output('blob');
+            window.open(URL.createObjectURL(pdfBlob), '_blank');
+
+            // Clear cart
+            cart = [];
+            displayCart();
+
+        } catch (error) {
+            alert(`Error: ${error.message}`);
+            console.error(error);
+        }
+    });
+
+    // UPI Form Handler
+    document.getElementById('qrForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        upiDetails = {
+            upiId: document.getElementById('upi_id').value.trim(),
+            name: document.getElementById('name').value.trim(),
+            note: document.getElementById('note').value.trim()
+        };
+        saveToLocalStorage('upiDetails', upiDetails);
+        alert('UPI details saved!');
+    });
+
+    // Import/Export Handlers
+    document.getElementById('download-data').addEventListener('click', () => {
+        const data = {
+            productDetails,
+            upiDetails,
+            billHistory
+        };
+        const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'qr-app-data.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    });
+
+    document.getElementById('upload-data').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const data = JSON.parse(event.target.result);
+                    productDetails = data.productDetails || {};
+                    upiDetails = data.upiDetails || {};
+                    billHistory = data.billHistory || [];
+                    saveToLocalStorage('productDetails', productDetails);
+                    saveToLocalStorage('upiDetails', upiDetails);
+                    saveToLocalStorage('billHistory', billHistory);
+                    alert('Data imported successfully!');
+                } catch (error) {
+                    alert('Invalid file format!');
+                }
+            };
+            reader.readAsText(file);
+        }
+    });
+
+    // Bill History Display
+    document.getElementById('option5-button').addEventListener('click', () => {
+        const historyContainer = document.getElementById('bill-history');
+        historyContainer.innerHTML = '';
         
-        /* New Inventory Styles */
-        #inventory-list {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
+        billHistory.forEach((bill, index) => {
+            const billElement = document.createElement('div');
+            billElement.className = 'bill-entry';
+            billElement.innerHTML = `
+                <h3>Bill #${index + 1}</h3>
+                <p>Date: ${bill.date}</p>
+                <ul>
+                    ${bill.items.map(item => `
+                        <li>${productDetails[item.code]?.name || 'Unknown'} 
+                        (x${item.quantity}) - Rs. ${(productDetails[item.code]?.price * item.quantity).toFixed(2)}</li>
+                    `).join('')}
+                </ul>
+                <p>Total: Rs. ${bill.total}</p>
+                <hr>
+            `;
+            historyContainer.appendChild(billElement);
+        });
+    });
+});
+
+
+
+// New Inventory and Dashboard Management Code
+
+domReady(function () {
+    let productDetails = loadFromLocalStorage('productDetails') || {};
+    let cart = [];
+    let upiDetails = loadFromLocalStorage('upiDetails') || {};
+    let billHistory = loadFromLocalStorage('billHistory') || [];
+    
+    let inventory = loadFromLocalStorage('inventory') || {};
+    let dashboardData = loadFromLocalStorage('dashboardData') || {
+        totalSales: 0,
+        todaySales: 0,
+        lowStockItems: []
+    };
+
+    document.getElementById('save-barcode').addEventListener('click', () => {
+        const barcode = document.getElementById('barcode').value.trim();
+        const name = document.getElementById('product-name').value.trim();
+        const price = parseFloat(document.getElementById('product-price').value);
+        const quantity = parseInt(document.getElementById('product-quantity').value) || 0;
+        const lowLimit = parseInt(document.getElementById('low-limit').value) || 5;
+
+        if (barcode && name && !isNaN(price) && price > 0) {
+            productDetails[barcode] = { 
+                name, 
+                price,
+                quantity,
+                lowLimit
+            };
+            saveToLocalStorage('productDetails', productDetails);
+            updateInventory();
+            alert('Product saved successfully!');
+        } else {
+            alert('Invalid input! Please check all fields.');
         }
-        #inventory-list th, #inventory-list td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
+    });
+
+    function updateInventory() {
+        inventory = {};
+        for (const [barcode, details] of Object.entries(productDetails)) {
+            inventory[barcode] = { 
+                name: details.name,
+                price: details.price,
+                quantity: details.quantity,
+                lowLimit: details.lowLimit
+            };
         }
-        #inventory-list input {
-            width: 80px;
-            padding: 3px;
+        saveToLocalStorage('inventory', inventory);
+        updateDashboard();
+    }
+
+    function updateStockAfterSale() {
+        cart.forEach(item => {
+            if (productDetails[item.code]) {
+                productDetails[item.code].quantity -= item.quantity;
+                if (productDetails[item.code].quantity < 0) {
+                    productDetails[item.code].quantity = 0;
+                }
+            }
+        });
+        saveToLocalStorage('productDetails', productDetails);
+        updateInventory();
+    }
+
+    document.getElementById('generate-bill').addEventListener('click', async () => {
+        try {
+            updateStockAfterSale();
+            const saleAmount = cart.reduce((sum, item) => {
+                const product = productDetails[item.code];
+                return sum + (product?.price || 0) * item.quantity;
+            }, 0);
+            
+            dashboardData.totalSales += saleAmount;
+            dashboardData.todaySales += saleAmount;
+            dashboardData.lowStockItems = getLowStockItems();
+            saveToLocalStorage('dashboardData', dashboardData);
+        } catch (error) {
+            console.error(error);
         }
-        .dashboard-stats {
-            display: flex;
-            gap: 20px;
-            margin: 20px 0;
+    });
+
+    document.getElementById('option6-button').addEventListener('click', () => {
+        const inventoryList = document.getElementById('inventory-list');
+        inventoryList.innerHTML = '';
+        
+        for (const [barcode, item] of Object.entries(inventory)) {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${barcode}</td>
+                <td><input type="text" value="${item.name}" data-field="name" data-barcode="${barcode}"></td>
+                <td><input type="number" value="${item.quantity}" data-field="quantity" data-barcode="${barcode}"></td>
+                <td><input type="number" step="0.01" value="${item.price}" data-field="price" data-barcode="${barcode}"></td>
+                <td><input type="number" value="${item.lowLimit}" data-field="lowLimit" data-barcode="${barcode}"></td>
+                <td><button class="save-inventory-btn" data-barcode="${barcode}">Save</button></td>
+            `;
+            inventoryList.appendChild(row);
         }
-        .stat-card {
-            flex: 1;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+    });
+
+    document.getElementById('inventory-list').addEventListener('click', (e) => {
+        if (e.target.classList.contains('save-inventory-btn')) {
+            const barcode = e.target.dataset.barcode;
+            const inputs = document.querySelectorAll(`[data-barcode="${barcode}"]`);
+            
+            inputs.forEach(input => {
+                if (input.tagName === 'INPUT') {
+                    const field = input.dataset.field;
+                    const value = field === 'price' ? 
+                        parseFloat(input.value) : 
+                        parseInt(input.value);
+                        
+                    productDetails[barcode][field] = value;
+                }
+            });
+            
+            saveToLocalStorage('productDetails', productDetails);
+            updateInventory();
+            alert('Inventory updated!');
         }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>QR Code Scanner</h1>
-        <div class="button-group">
-            <button id="moreButton" onclick="showMoreOptions()">More</button>
-        </div>
+    });
 
-        <div id="moreOptions" class="hidden">
-            <button id="option1-button" onclick="switchToOption1()">Set Barcode Values</button>
-            <button id="option3-button" onclick="switchToOption3()">UPI QR Code</button>
-            <button id="option4-button" onclick="switchToOption4()">Import/Export Data</button>
-            <button id="option5-button" onclick="switchToOption5()">Bill History</button>
-            <!-- New Inventory and Dashboard Options -->
-            <button id="option6-button" onclick="switchToOption6()">Inventory</button>
-            <button id="option7-button" onclick="switchToOption7()">Dashboard</button>
-            <button id="openDialogBtn">Download File</button>
-            <button id="homePageBtn" onclick="window.location.href='https://qrwale.in/'">Home Page</button>
-        </div>
+    function getLowStockItems() {
+        return Object.entries(productDetails)
+            .filter(([_, item]) => item.quantity <= item.lowLimit)
+            .map(([barcode, item]) => ({
+                barcode,
+                name: item.name,
+                remaining: item.quantity,
+                lowLimit: item.lowLimit
+            }));
+    }
 
-        <!-- Existing Options (1-5) remain unchanged -->
-
-        <!-- New Inventory Management Section -->
-        <div id="option6" class="option hidden">
-            <h2>Inventory Management</h2>
-            <table id="inventory-list">
-                <thead>
-                    <tr>
-                        <th>Barcode</th>
-                        <th>Product Name</th>
-                        <th>Quantity</th>
-                        <th>Price</th>
-                        <th>Low Stock Limit</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Inventory items will be populated by JavaScript -->
-                </tbody>
-            </table>
-        </div>
-
-        <!-- New Dashboard Section -->
-        <div id="option7" class="option hidden">
-            <h2>Sales Dashboard</h2>
-            <div class="dashboard-stats">
-                <div class="stat-card">
-                    <h3>Total Sales</h3>
-                    <p id="total-sales">Rs. 0.00</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Today's Sales</h3>
-                    <p id="today-sales">Rs. 0.00</p>
-                </div>
-            </div>
-            <div class="low-stock">
-                <h3>Low Stock Alerts</h3>
-                <ul id="low-stock-items"></ul>
-            </div>
-        </div>
-
-        <!-- Updated Product Setup Form -->
-        <div id="option1" class="option hidden">
-            <div id="my-qr-reader-option1"></div>
-            <div class="input-group">
-                <label for="barcode">Barcode:</label>
-                <input type="text" id="barcode" readonly>
-            </div>
-            <div class="input-group">
-                <label for="product-name">Product Name:</label>
-                <input type="text" id="product-name">
-            </div>
-            <div class="input-group">
-                <label for="product-price">Product Price:</label>
-                <input type="number" id="product-price">
-            </div>
-            <!-- New Inventory Fields -->
-            <div class="input-group">
-                <label for="product-quantity">Initial Quantity:</label>
-                <input type="number" id="product-quantity" value="0">
-            </div>
-            <div class="input-group">
-                <label for="low-limit">Low Stock Alert:</label>
-                <input type="number" id="low-limit" value="5">
-            </div>
-            <button id="save-barcode">Save</button>
-        </div>
-
-        <!-- ... (rest of existing HTML remains the same) ... -->
-
-    </div>
-
-    <!-- ... (existing dialog box remains same) ... -->
-
-    <script>
-        // Update switch functions
-        function switchToOption6() {
-            hideAllOptions();
-            document.getElementById('option6').style.display = 'block';
-        }
-
-        function switchToOption7() {
-            hideAllOptions();
-            document.getElementById('option7').style.display = 'block';
-        }
-
-        // Update hideAllOptions
-        function hideAllOptions() {
-            document.getElementById('option1').style.display = 'none';
-            document.getElementById('option2').style.display = 'none';
-            document.getElementById('option3').style.display = 'none';
-            document.getElementById('option4').style.display = 'none';
-            document.getElementById('option5').style.display = 'none';
-            document.getElementById('option6').style.display = 'none';
-            document.getElementById('option7').style.display = 'none';
-        }
-
-        // ... (rest of existing script remains the same) ...
-    </script>
-</body>
-</html>
+    function updateDashboard() {
+        const today = new Date().toLocaleDateString();
+        const todaySales = billHistory
+            .filter(bill => new Date(bill.date).toLocaleDateString() === today)
+            .reduce((sum, bill) => sum + parseFloat(bill.total), 0);
+        
+        const lowStockItems = getLowStockItems();
+        
+        document.getElementById('total-sales').textContent = dashboardData.totalSales.toFixed(2);
+        document.getElementById('today-sales').textContent = todaySales.toFixed(2);
+        
+        const lowStockList = document.getElementById('low-stock-items');
+        lowStockList.innerHTML = lowStockItems.map(item => `
+            <li>${item.name} (Remaining: ${item.remaining}, Alert Limit: ${item.lowLimit})</li>
+        `).join('');
+    }
+});
