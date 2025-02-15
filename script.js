@@ -74,17 +74,28 @@ domReady(function () {
         });
     }
 
+   let stockScanner = null; // Add this at the top with other variables
+
     function showAddStockForm() {
         document.getElementById('add-stock-form').classList.remove('hidden');
-        const stockScanner = new Html5QrcodeScanner(
-            "add-stock-form",
-            { fps: 30, qrbox: 250 }
+        
+        // Clear previous scanner if exists
+        if (stockScanner) {
+            stockScanner.clear().catch(error => console.error(error));
+        }
+    
+        // Initialize new scanner in dedicated container
+        stockScanner = new Html5QrcodeScanner(
+            "stock-scanner-container", // Changed to dedicated container
+            { fps: 30, qrbox: { width: 250, height: 250 } }
         );
+        
         stockScanner.render((decodeText) => {
             document.getElementById('stock-barcode').value = decodeText;
+            // Stop scanner after successful scan
+            stockScanner.clear().catch(error => console.error(error));
         });
     }
-
     function updateStock() {
         const barcode = document.getElementById('stock-barcode').value;
         const quantity = parseInt(document.getElementById('stock-quantity').value);
@@ -104,6 +115,11 @@ domReady(function () {
         updateInventoryUI();
         alert('Stock updated!');
     }
+            if (stockScanner) {
+            stockScanner.clear().catch(error => console.error(error));
+              document.getElementById('stock-scanner-container').innerHTML = '';
+         }
+      }
 
     // Cart Display
     function displayCart() {
