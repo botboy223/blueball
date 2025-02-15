@@ -6,7 +6,6 @@ function domReady(fn) {
     }
 }
 
-// Initialize jsPDF
 window.jsPDF = window.jspdf.jsPDF;
 
 function saveToLocalStorage(key, value) {
@@ -20,11 +19,12 @@ function loadFromLocalStorage(key) {
 
 domReady(function () {
     let productDetails = loadFromLocalStorage('productDetails') || {};
+    let inventory = loadFromLocalStorage('inventory') || {};
     let cart = [];
     let upiDetails = loadFromLocalStorage('upiDetails') || {};
     let billHistory = loadFromLocalStorage('billHistory') || [];
 
-    // Scanner for Option 1 (Product Setup)
+    // Scanner for Product Setup
     const html5QrcodeScannerOption1 = new Html5QrcodeScanner(
         "my-qr-reader-option1",
         { fps: 30, qrbox: { width: 250, height: 250 } }
@@ -40,7 +40,7 @@ domReady(function () {
         }
     });
 
-    // Scanner for Option 2 (Cart)
+    // Scanner for Cart
     const html5QrcodeScannerOption2 = new Html5QrcodeScanner(
         "my-qr-reader-option2",
         { fps: 30, qrbox: { width: 250, height: 250 } }
@@ -48,7 +48,6 @@ domReady(function () {
     html5QrcodeScannerOption2.render((decodeText) => {
         if (productDetails[decodeText]) {
             const existingItem = cart.find(item => item.code === decodeText);
-            // Always add new item with quantity 1 if not exists
             if (!existingItem) {
                 cart.push({ code: decodeText, quantity: 1 });
                 displayCart();
@@ -58,6 +57,53 @@ domReady(function () {
         }
     });
 
+    // Inventory Functions
+    function updateInventoryUI() {
+        const inventoryList = document.getElementById('inventory-list');
+        inventoryList.innerHTML = '';
+        
+        Object.keys(productDetails).forEach(barcode => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'inventory-item';
+            itemDiv.innerHTML = `
+                <span>${productDetails[barcode].name}</span>
+                <span>Stock: ${inventory[barcode]?.stock || 0}</span>
+                <span>Low Stock Alert: ${inventory[barcode]?.lowStock || 'N/A'}</span>
+            `;
+            inventoryList.appendChild(itemDiv);
+        });
+    }
+
+    function showAddStockForm() {
+        document.getElementById('add-stock-form').classList.remove('hidden');
+        const stockScanner = new Html5QrcodeScanner(
+            "add-stock-form",
+            { fps: 30, qrbox: 250 }
+        );
+        stockScanner.render((decodeText) => {
+            document.getElementById('stock-barcode').value = decodeText;
+        });
+    }
+
+    function updateStock() {
+        const barcode = document.getElementById('stock-barcode').value;
+        const quantity = parseInt(document.getElementById('stock-quantity').value);
+        const lowStock = parseInt(document.getElementById('low-stock-alert').value);
+
+        if (!productDetails[barcode]) {
+            alert('Product not found!');
+            return;
+        }
+
+        inventory[barcode] = {
+            stock: quantity,
+            lowStock: lowStock || inventory[barcode]?.lowStock || 5
+        };
+
+        saveToLocalStorage('inventory', inventory);
+        updateInventoryUI();
+        alert('Stock updated!');
+    }
 
     // Cart Display
     function displayCart() {
@@ -110,102 +156,90 @@ domReady(function () {
         if (barcode && name && !isNaN(price) && price > 0) {
             productDetails[barcode] = { name, price };
             saveToLocalStorage('productDetails', productDetails);
-            alert('Product saved successfully!');
+            alert('Product saved!');
         } else {
-            alert('Invalid input! Please check all fields.');
+            alert('Invalid input!');
         }
     });
 
     // PDF Generation
     document.getElementById('generate-bill').addEventListener('click', async () => {
         try {
-            // Validate UPI details
             if (!upiDetails.upiId || !upiDetails.name || !upiDetails.note) {
-                throw new Error('Please configure UPI details first');
+                throw new Error('Configure UPI details first');
             }
 
-            // Calculate total
             const totalAmount = cart.reduce((sum, item) => {
                 const product = productDetails[item.code];
                 return sum + (product?.price || 0) * item.quantity;
             }, 0);
 
-            // Generate UPI URL
+            // Update inventory
+            cart.forEach(item => {
+                if (inventory[item.code]) {
+                    inventory[item.code].stock -= item.quantity;
+                    if (inventory[item.code].stock < 0) inventory[item.code].stock = 0;
+                }
+            });
+            saveToLocalStorage('inventory', inventory);
+
             const upiUrl = `upi://pay?pa=${upiDetails.upiId}` +
                             `&pn=${encodeURIComponent(upiDetails.name)}` +
                             `&am=${totalAmount.toFixed(2)}` +
                             `&cu=INR` +
                             `&tn=${encodeURIComponent(upiDetails.note)}`;
 
-            // Create QR Code
             const qrCode = new QRCodeStyling({
                 width: 200,
                 height: 200,
                 data: upiUrl,
-                dotsOptions: {
-                    color: "#000",
-                    type: "rounded"
-                },
-                backgroundOptions: {
-                    color: "#ffffff"
-                }
+                dotsOptions: { color: "#000", type: "rounded" },
+                backgroundOptions: { color: "#ffffff" }
             });
 
-            // Render QR Code
             const qrContainer = document.getElementById('bill-qr-code');
             qrContainer.innerHTML = '';
             qrCode.append(qrContainer);
 
-            // Wait for QR code rendering
             await new Promise(resolve => setTimeout(resolve, 500));
 
-            // Create PDF
             const doc = new jsPDF();
             let yPos = 20;
 
-            // Header
             doc.setFontSize(22);
             doc.text("INVOICE", 105, yPos, { align: 'center' });
             yPos += 15;
 
-            // Invoice Details
             doc.setFontSize(12);
             doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, yPos);
             doc.text(`Time: ${new Date().toLocaleTimeString()}`, 160, yPos);
             yPos += 15;
 
-            // Table Header
             doc.setFillColor(240, 240, 240);
             doc.rect(20, yPos, 170, 10, 'F');
-            doc.setFontSize(12);
             doc.text("Item", 22, yPos + 7);
             doc.text("Qty", 100, yPos + 7);
             doc.text("Price", 160, yPos + 7);
             yPos += 12;
 
-            // Items
             cart.forEach(item => {
                 const product = productDetails[item.code];
-                doc.setFontSize(10);
                 doc.text(product?.name || 'Unknown Item', 22, yPos);
                 doc.text(item.quantity.toString(), 102, yPos);
                 doc.text(`Rs. ${(product?.price * item.quantity).toFixed(2)}`, 162, yPos);
                 yPos += 8;
             });
 
-            // Total
             yPos += 10;
             doc.setFontSize(14);
             doc.text(`Total Amount: Rs. ${totalAmount.toFixed(2)}`, 20, yPos);
 
-            // Add QR Code
             const qrCanvas = qrContainer.querySelector('canvas');
             if (qrCanvas) {
                 const qrData = qrCanvas.toDataURL('image/png');
                 doc.addImage(qrData, 'PNG', 140, yPos - 10, 50, 50);
             }
 
-            // Save to history
             billHistory.push({
                 date: new Date().toLocaleString(),
                 total: totalAmount.toFixed(2),
@@ -213,17 +247,14 @@ domReady(function () {
             });
             saveToLocalStorage('billHistory', billHistory);
 
-            // Open PDF
             const pdfBlob = doc.output('blob');
             window.open(URL.createObjectURL(pdfBlob), '_blank');
 
-            // Clear cart
             cart = [];
             displayCart();
 
         } catch (error) {
             alert(`Error: ${error.message}`);
-            console.error(error);
         }
     });
 
@@ -243,6 +274,7 @@ domReady(function () {
     document.getElementById('download-data').addEventListener('click', () => {
         const data = {
             productDetails,
+            inventory,
             upiDetails,
             billHistory
         };
@@ -264,14 +296,16 @@ domReady(function () {
                 try {
                     const data = JSON.parse(event.target.result);
                     productDetails = data.productDetails || {};
+                    inventory = data.inventory || {};
                     upiDetails = data.upiDetails || {};
                     billHistory = data.billHistory || [];
                     saveToLocalStorage('productDetails', productDetails);
+                    saveToLocalStorage('inventory', inventory);
                     saveToLocalStorage('upiDetails', upiDetails);
                     saveToLocalStorage('billHistory', billHistory);
-                    alert('Data imported successfully!');
+                    alert('Data imported!');
                 } catch (error) {
-                    alert('Invalid file format!');
+                    alert('Invalid file!');
                 }
             };
             reader.readAsText(file);
