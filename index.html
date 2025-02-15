@@ -122,17 +122,19 @@
             <div id="bill-history"></div>
         </div>
 
-        <div id="option6" class="option hidden">
-            <h2>Inventory Management</h2>
-            <div id="inventory-list"></div>
-            <button onclick="showAddStockForm()">Add Stock</button>
-            <div id="add-stock-form" class="hidden">
-                <input type="text" id="stock-barcode" placeholder="Scan barcode">
-                <input type="number" id="stock-quantity" placeholder="Quantity">
-                <input type="number" id="low-stock-alert" placeholder="Low Stock Alert">
-                <button onclick="updateStock()">Update Stock</button>
-            </div>
+       <div id="option6" class="option hidden">
+        <h2>Inventory Management</h2>
+        <div id="inventory-list"></div>
+        <button onclick="showAddStockForm()">Add Stock</button>
+        <div id="add-stock-form" class="hidden">
+            <!-- Add scanner container -->
+            <div id="stock-scanner-container"></div>
+            <input type="text" id="stock-barcode" placeholder="Scan barcode">
+            <input type="number" id="stock-quantity" placeholder="Quantity">
+            <input type="number" id="low-stock-alert" placeholder="Low Stock Alert">
+            <button onclick="updateStock()">Update Stock</button>
         </div>
+</div>
     </div>
 
     <div id="dialogBox" class="dialog">
