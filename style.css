@@ -132,3 +132,9 @@ button:hover {
     width: 60px;
     margin: 0 10px;
 }
+#stock-scanner-container {
+    width: 300px;
+    height: 300px;
+    margin: 20px auto;
+    border: 2px dashed #ccc;
+}
