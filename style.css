@@ -67,35 +67,29 @@ button:hover {
         width: 100%;
     }
 
-    /* For mobile, ensure buttons stay visible after click */
     .button-group {
         position: sticky;
-        top: 0; /* Stick to the top of the viewport */
-        z-index: 20; /* Higher z-index to ensure it stays on top */
-        background-color: white; /* Match with container's background */
+        top: 0;
+        z-index: 1001;
+        background-color: white;
+        padding: 10px 0;
     }
 
     #moreButton {
-        display: block;
-        visibility: visible;
-        cursor: pointer;
-        padding: 10px 20px;
-        font-size: 16px;
+        z-index: 1000;
     }
 
     #moreOptions {
-        position: absolute; /* Position relative to button-group */
-        top: 100%; /* Position directly below the More button */
+        position: absolute;
+        top: 100%;
         left: 0;
         width: 100%;
-        z-index: 15; /* Lower than the button but still above other content */
-        background-color: #ffffff;
+        z-index: 999;
+        background-color: white;
         border: 1px solid #ccc;
-        border-radius: 0 0 5px 5px;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
 
-    /* Prevent immediate collapse on touch devices */
     #moreOptions.hidden {
         display: none;
     }
@@ -115,6 +109,29 @@ button:hover {
 
 .dashboard {
     margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    text-align: left;
+}
+
+.dashboard h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.dashboard p {
+    margin: 5px 0;
+}
+
+.dashboard ul {
+    padding-left: 20px;
+    margin: 0;
+}
+
+.dashboard li {
+    margin-bottom: 5px;
 }
 
 #bill-history {
