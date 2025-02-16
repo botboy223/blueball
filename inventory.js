@@ -47,30 +47,33 @@ domReady(function () {
         "my-qr-reader-option2",
         { fps: 30, qrbox: { width: 250, height: 250 } }
     );
+    let lastScannedCode = '';  // To keep track of the last scanned code
+    
     html5QrcodeScannerOption2.render((decodeText) => {
-        if (productDetails[decodeText]) {
+        if (decodeText !== lastScannedCode && productDetails[decodeText]) {
+            lastScannedCode = decodeText; // Update the last scanned code
             const existingItem = cart.find(item => item.code === decodeText);
             if (!existingItem) {
-                if (inventory[decodeText].quantity > 0) { // Check if there's stock
-                    cart.push({ code: decodeText, quantity: 1 }); // Start with a quantity of 1
+                if (inventory[decodeText].quantity > 0) {
+                    // Add the item with a quantity of 1 by default
+                    cart.push({ code: decodeText, quantity: 1 });
                     displayCart();
                 } else {
                     alert(`Out of stock for product ${inventory[decodeText].name}!`);
                 }
             } else {
-                if (inventory[decodeText].quantity >= existingItem.quantity + 1) { // Check if adding more won't exceed stock
-                    existingItem.quantity++;
-                    displayCart();
-                } else {
-                    alert(`Cannot add more. Only ${inventory[decodeText].quantity} left in stock for ${inventory[decodeText].name}.`);
-                }
+                // If the item exists, do not automatically increase the quantity
+                displayCart();
             }
-        } else {
+        } else if (decodeText !== lastScannedCode) {
+            // If the product is not found in the productDetails, alert the user
             alert(`Product ${decodeText} not found!`);
         }
+        // Stop scanning after each successful scan
+        html5QrcodeScannerOption2.clear();
+        html5QrcodeScannerOption2.stop();
     });
-
-    // Cart Display
+    
     function displayCart() {
         const cartDiv = document.getElementById('cart');
         cartDiv.innerHTML = '';
