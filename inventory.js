@@ -426,9 +426,16 @@ domReady(function () {
     }
     // Show/Hide Options
     function showMoreOptions() {
-        console.log("More button clicked!");
-        document.getElementById('moreOptions').classList.toggle('hidden');
-        updateDashboard();
+        const moreOptions = document.getElementById('moreOptions');
+        moreOptions.classList.toggle('hidden');
+    
+        // Prevent closing immediately on mobile by stopping propagation
+        document.body.addEventListener('click', function hideOptions(e) {
+            if (!moreOptions.contains(e.target) && e.target !== moreButton) {
+                moreOptions.classList.add('hidden');
+                document.body.removeEventListener('click', hideOptions);
+            }
+        }, { once: true });
     }
 
     function switchToOption1() {
@@ -467,12 +474,16 @@ domReady(function () {
         document.getElementById('dashboard').classList.remove('hidden');
     }
 
-    // Event listeners for all buttons
     let moreButton = document.getElementById('moreButton');
     if (moreButton) {
-        moreButton.removeEventListener('click', showMoreOptions); // Remove existing listener if any
+        // Use 'touchstart' for mobile and 'click' for desktop
+        moreButton.removeEventListener('click', showMoreOptions); 
+        moreButton.removeEventListener('touchstart', showMoreOptions); 
+        moreButton.addEventListener('touchstart', function(e) {
+            e.preventDefault(); // Prevent default action to ensure the event doesn't propagate
+            showMoreOptions();
+        });
         moreButton.addEventListener('click', showMoreOptions);
-        moreButton.addEventListener('touchstart', showMoreOptions);
     }
 
     document.getElementById('option1-button').addEventListener('click', switchToOption1);
