@@ -9,12 +9,22 @@ function domReady(fn) {
 window.jsPDF = window.jspdf.jsPDF;
 
 function saveToLocalStorage(key, value) {
-    localStorage.setItem(key, JSON.stringify(value));
+    try {
+        localStorage.setItem(key, JSON.stringify(value));
+    } catch (e) {
+        console.error('Failed to save to localStorage:', e);
+        alert('Failed to save data. Please check your storage settings.');
+    }
 }
 
 function loadFromLocalStorage(key) {
-    const value = localStorage.getItem(key);
-    return value ? JSON.parse(value) : null;
+    try {
+        const value = localStorage.getItem(key);
+        return value ? JSON.parse(value) : null;
+    } catch (e) {
+        console.error('Failed to load from localStorage:', e);
+        return null;
+    }
 }
 
 domReady(function () {
@@ -27,39 +37,61 @@ domReady(function () {
     // Scanner for Option 1 (Product Setup)
     const html5QrcodeScannerOption1 = new Html5QrcodeScanner(
         "my-qr-reader-option1",
-        { fps: 30, qrbox: { width: 250, height: 250 } }
+        { 
+            fps: 30, 
+            qrbox: { width: 250, height: 250 },
+            formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]
+        }
     );
     html5QrcodeScannerOption1.render((decodeText) => {
         document.getElementById('barcode').value = decodeText;
         if (productDetails[decodeText]) {
             document.getElementById('product-name').value = productDetails[decodeText].name;
             document.getElementById('product-price').value = productDetails[decodeText].price;
+            document.getElementById('product-quantity').value = inventory[decodeText]?.quantity || 0;
         } else {
             document.getElementById('product-name').value = '';
             document.getElementById('product-price').value = '';
+            document.getElementById('product-quantity').value = '';
         }
+    }, (error) => {
+        console.error('QR Code Scanner Error:', error);
+        alert('Failed to scan QR code. Please ensure the QR code is clear and well-lit. If the issue persists, try refreshing the page or use another QR code.');
     });
 
     // Scanner for Option 2 (Cart)
     const html5QrcodeScannerOption2 = new Html5QrcodeScanner(
         "my-qr-reader-option2",
-        { fps: 30, qrbox: { width: 250, height: 250 } }
+        { 
+            fps: 30, 
+            qrbox: { width: 250, height: 250 },
+            formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]
+        }
     );
     html5QrcodeScannerOption2.render((decodeText) => {
         if (productDetails[decodeText]) {
             const existingItem = cart.find(item => item.code === decodeText);
             if (!existingItem) {
-                cart.push({ code: decodeText, quantity: 1 });
-                updateInventory(decodeText, 1);
-                displayCart();
+                if (inventory[decodeText].quantity > 0) { // Check if there's stock
+                    cart.push({ code: decodeText, quantity: 1 }); // Start with a quantity of 1
+                    displayCart();
+                } else {
+                    alert(`Out of stock for product ${inventory[decodeText].name}!`);
+                }
             } else {
-                existingItem.quantity++;
-                updateInventory(decodeText, 1);
-                displayCart();
+                if (inventory[decodeText].quantity >= existingItem.quantity + 1) { // Check if adding more won't exceed stock
+                    existingItem.quantity++;
+                    displayCart();
+                } else {
+                    alert(`Cannot add more. Only ${inventory[decodeText].quantity} left in stock for ${inventory[decodeText].name}.`);
+                }
             }
         } else {
             alert(`Product ${decodeText} not found!`);
         }
+    }, (error) => {
+        console.error('QR Code Scanner Error:', error);
+        alert('Failed to scan QR code for adding to cart. Please ensure the QR code is clear and well-lit. If the issue persists, try refreshing the page or use another QR code.');
     });
 
     // Cart Display
@@ -97,10 +129,21 @@ domReady(function () {
     document.getElementById('cart').addEventListener('input', (e) => {
         if (e.target.classList.contains('quantity-input')) {
             const index = e.target.dataset.index;
-            const newQty = parseInt(e.target.value);
+            const newQty = e.target.value === '' ? 1 : parseInt(e.target.value); // Default to 1 if empty
+            const productCode = cart[index].code;
+            const oldQty = cart[index].quantity;
+            
             if (!isNaN(newQty) && newQty > 0) {
-                cart[index].quantity = newQty;
-                displayCart();
+                if (inventory[productCode].quantity >= newQty) {
+                    cart[index].quantity = newQty;
+                    displayCart();
+                } else {
+                    alert(`Not enough stock. Only ${inventory[productCode].quantity} left.`);
+                    e.target.value = oldQty; // Reset to previous value
+                }
+            } else {
+                alert('Quantity must be a positive number.');
+                e.target.value = oldQty; // Reset to previous value
             }
         }
     });
@@ -109,7 +152,7 @@ domReady(function () {
         const barcode = document.getElementById('barcode').value.trim();
         const name = document.getElementById('product-name').value.trim();
         const price = parseFloat(document.getElementById('product-price').value);
-        const quantity = 0;
+        const quantity = parseInt(document.getElementById('product-quantity').value) || 0;
 
         if (barcode && name && !isNaN(price) && price > 0) {
             productDetails[barcode] = { name, price };
@@ -219,19 +262,24 @@ domReady(function () {
             });
             saveToLocalStorage('billHistory', billHistory);
 
-            // Open PDF
-            const pdfBlob = doc.output('blob');
-            window.open(URL.createObjectURL(pdfBlob), '_blank');
-
-            // Clear cart and update inventory
-            cart.forEach(item => updateInventory(item.code, item.quantity));
+            // Update inventory and save changes after bill generation
+            cart.forEach(item => {
+                updateInventory(item.code, item.quantity);
+            });
+            
+            // Clear cart
             cart = [];
             displayCart();
             updateDashboard();
 
+            // Open PDF
+            const pdfBlob = doc.output('blob');
+            window.open(URL.createObjectURL(pdfBlob), '_blank');
+
         } catch (error) {
             alert(`Error: ${error.message}`);
             console.error(error);
+            // Do not clear cart if there's an error
         }
     });
 
@@ -316,7 +364,10 @@ domReady(function () {
     // Inventory Management
     function updateInventory(barcode, quantityChange) {
         if (inventory[barcode]) {
-            inventory[barcode].quantity = Math.max(0, inventory[barcode].quantity - quantityChange);
+            inventory[barcode].quantity -= quantityChange;
+            if (inventory[barcode].quantity < 0) {
+                inventory[barcode].quantity = 0; // Ensure no negative stock
+            }
             saveToLocalStorage('inventory', inventory);
         }
     }
@@ -330,6 +381,7 @@ domReady(function () {
                 <span>${data.name}</span>
                 <span>Price: Rs. ${data.price.toFixed(2)}</span>
                 <span>Quantity: <input type="number" value="${data.quantity}" data-barcode="${barcode}" class="edit-quantity"></span>
+                <button data-barcode="${barcode}" class="edit-product">Edit</button>
             `;
             inventoryList.appendChild(item);
         }
@@ -338,7 +390,27 @@ domReady(function () {
         document.querySelectorAll('.edit-quantity').forEach(input => {
             input.addEventListener('change', function() {
                 const barcode = this.getAttribute('data-barcode');
-                inventory[barcode].quantity = parseInt(this.value);
+                const newQuantity = parseInt(this.value);
+                if (newQuantity >= 0) { // Ensure quantity isn't negative
+                    inventory[barcode].quantity = newQuantity;
+                    document.getElementById('save-inventory').style.display = 'block'; // Show save button
+                } else {
+                    alert('Quantity cannot be negative!');
+                    this.value = inventory[barcode].quantity; // Reset to previous value
+                }
+            });
+        });
+
+        // Event listener for editing product details
+        document.querySelectorAll('.edit-product').forEach(button => {
+            button.addEventListener('click', function() {
+                const barcode = this.getAttribute('data-barcode');
+                const product = inventory[barcode];
+                document.getElementById('barcode').value = barcode;
+                document.getElementById('product-name').value = product.name;
+                document.getElementById('product-price').value = product.price;
+                document.getElementById('product-quantity').value = product.quantity;
+                switchToOption1(); // Switch to Set Barcode Values to allow editing
                 document.getElementById('save-inventory').style.display = 'block'; // Show save button
             });
         });
@@ -348,6 +420,7 @@ domReady(function () {
             saveToLocalStorage('inventory', inventory);
             this.style.display = 'none'; // Hide save button after saving
             alert('Inventory saved!');
+            switchToInventory(); // Refresh inventory view
         });
     }
 
