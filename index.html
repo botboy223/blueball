@@ -13,9 +13,19 @@
             <button id="moreButton">More</button>
         </div>
 
+        <!-- Add to Cart section should be outside of moreOptions -->
+        <div id="option2" class="option">
+            <div id="my-qr-reader-option2"></div>
+            <h2>Cart</h2>
+            <div id="cart"></div>
+            <div id="total">Total: Rs.0</div>
+            <button id="generate-bill">Generate Bill</button>
+            <div id="bill-qr-code"></div>
+            <button id="restart-scan">Scan Again</button>
+        </div>
+
         <div id="moreOptions" class="hidden">
             <button id="option1-button">Set Barcode Values</button>
-            <button id="option2-button">Add to Cart</button>
             <button id="option3-button">UPI QR Code</button>
             <button id="option4-button">Import/Export Data</button>
             <button id="option5-button">Bill History</button>
@@ -30,7 +40,7 @@
             <ul id="low-stock-items"></ul>
         </div>
 
-        <div id="option1" class="option">
+        <div id="option1" class="option hidden">
             <div id="my-qr-reader-option1"></div>
             <div class="input-group">
                 <label for="barcode">Barcode:</label>
@@ -51,16 +61,7 @@
             <button id="save-barcode">Save</button>
         </div>
 
-        <div id="option2" class="option">
-            <div id="my-qr-reader-option2"></div>
-            <h2>Cart</h2>
-            <div id="cart"></div>
-            <div id="total">Total: Rs.0</div>
-            <button id="generate-bill">Generate Bill</button>
-            <div id="bill-qr-code"></div>
-        </div>
-
-        <div id="option3" class="option">
+        <div id="option3" class="option hidden">
             <h2>UPI QR Code Generator</h2>
             <form id="qrForm">
                 <div class="input-group">
@@ -80,18 +81,18 @@
             <div id="qrCode"></div>
         </div>
 
-        <div id="option4" class="option">
+        <div id="option4" class="option hidden">
             <h2>Import/Export Data</h2>
             <button id="download-data">Download Data</button>
             <input type="file" id="upload-data" accept=".json">
         </div>
 
-        <div id="option5" class="option">
+        <div id="option5" class="option hidden">
             <h2>Bill History</h2>
             <div id="bill-history"></div>
         </div>
 
-        <div id="inventory-option" class="option">
+        <div id="inventory-option" class="option hidden">
             <h2>Inventory</h2>
             <div id="inventory-list"></div>
             <button id="save-inventory" style="display: none;">Save</button>
