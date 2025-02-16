@@ -410,8 +410,7 @@ domReady(function () {
         let totalSales = 0;
 
         billHistory.forEach(bill => {
-            const billDate = new Date(bill.date).toDateString();
-            if (billDate === today) {
+            if (new Date(bill.date).toDateString() === today) {
                 todaySales += parseFloat(bill.total);
             }
             totalSales += parseFloat(bill.total);
