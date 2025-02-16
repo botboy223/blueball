@@ -405,22 +405,36 @@ domReady(function () {
     }
 
     function updateDashboard() {
-        const today = new Date().toDateString();
+        const today = new Date();  // Use a Date object for comparison
         let todaySales = 0;
         let totalSales = 0;
-
+    
+        console.log('Today:', today);
+    
         billHistory.forEach(bill => {
-            if (new Date(bill.date).toDateString() === today) {
+            const billDate = new Date(bill.date);
+            console.log('Bill Date:', billDate);  // Log each bill's date
+    
+            // Check if the bill was created today by comparing year, month, and day
+            if (billDate.getFullYear() === today.getFullYear() &&
+                billDate.getMonth() === today.getMonth() &&
+                billDate.getDate() === today.getDate()) {
                 todaySales += parseFloat(bill.total);
             }
             totalSales += parseFloat(bill.total);
         });
-
+    
+        // Log the calculated sales values for debugging
+        console.log('Today Sales:', todaySales);
+        console.log('Total Sales:', totalSales);
+    
+        // Update the DOM with new values
         document.getElementById('today-sales').textContent = todaySales.toFixed(2);
         document.getElementById('total-sales').textContent = totalSales.toFixed(2);
-
+    
+        // Update low stock items
         const lowStockList = document.getElementById('low-stock-items');
-        lowStockList.innerHTML = '';
+        lowStockList.innerHTML = '';  // Clear existing items
         Object.entries(inventory).filter(([_, item]) => item.quantity <= 5).forEach(([barcode, item]) => {
             const li = document.createElement('li');
             li.textContent = `${item.name} (${item.quantity} left)`;
