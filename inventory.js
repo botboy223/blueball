@@ -251,6 +251,8 @@ domReady(function () {
             // Clear cart
             cart = [];
             displayCart();
+            
+            // Update dashboard data including today's sales
             updateDashboard();
 
             // Open PDF
@@ -410,15 +412,18 @@ domReady(function () {
         let totalSales = 0;
 
         billHistory.forEach(bill => {
+            totalSales += parseFloat(bill.total);
+            // Check if the bill was created today
             if (new Date(bill.date).toDateString() === today) {
                 todaySales += parseFloat(bill.total);
             }
-            totalSales += parseFloat(bill.total);
         });
 
+        // Update the display for today's sales and total sales
         document.getElementById('today-sales').textContent = todaySales.toFixed(2);
         document.getElementById('total-sales').textContent = totalSales.toFixed(2);
 
+        // Update low stock items
         const lowStockList = document.getElementById('low-stock-items');
         lowStockList.innerHTML = '';
         Object.entries(inventory).filter(([_, item]) => item.quantity <= 5).forEach(([barcode, item]) => {
