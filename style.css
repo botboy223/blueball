@@ -18,8 +18,6 @@ body {
     text-align: center;
     width: 100%;
     position: relative;
-    height: 90vh;
-    overflow-y: auto;
 }
 
 .element {
@@ -66,37 +64,6 @@ button:hover {
     button {
         width: 100%;
     }
-
-    .button-group {
-        position: sticky;
-        top: 0;
-        z-index: 1001;
-        background-color: white;
-        padding: 10px 0;
-    }
-
-    #moreButton {
-        z-index: 1000;
-    }
-
-    #moreOptions {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        width: 100%;
-        z-index: 999;
-        background-color: white;
-        border: 1px solid #ccc;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
-
-    #moreOptions.hidden {
-        display: none;
-    }
-
-    #moreOptions:not(.hidden) {
-        display: block;
-    }
 }
 
 .option {
@@ -109,29 +76,20 @@ button:hover {
 
 .dashboard {
     margin-bottom: 20px;
-    padding: 15px;
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    text-align: left;
 }
 
-.dashboard h3 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    color: #333;
+.button-group {
+    position: relative;
 }
 
-.dashboard p {
-    margin: 5px 0;
-}
-
-.dashboard ul {
-    padding-left: 20px;
-    margin: 0;
-}
-
-.dashboard li {
-    margin-bottom: 5px;
+#moreButton {
+    display: block;
+    visibility: visible;
+    cursor: pointer;
+    z-index: 10;
+    position: relative;
+    padding: 10px 20px;
+    font-size: 16px;
 }
 
 #bill-history {
