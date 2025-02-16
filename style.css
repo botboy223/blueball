@@ -17,6 +17,7 @@ body {
     border-radius: 8px;
     text-align: center;
     width: 100%;
+    position: relative;
 }
 
 .element {
@@ -28,7 +29,7 @@ body {
     margin-bottom: 10px;
 }
 
-input, select {
+input {
     width: 100%;
     padding: 12px;
     border: 1px solid #ccc;
@@ -56,8 +57,12 @@ button:hover {
         padding: 20px;
     }
 
-    input, select, button {
+    input {
         width: 92%;
+    }
+
+    button {
+        width: 100%;
     }
 }
 
