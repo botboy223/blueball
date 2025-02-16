@@ -410,7 +410,8 @@ domReady(function () {
         let totalSales = 0;
 
         billHistory.forEach(bill => {
-            if (new Date(bill.date).toDateString() === today) {
+            const billDate = new Date(bill.date).toDateString();
+            if (billDate === today) {
                 todaySales += parseFloat(bill.total);
             }
             totalSales += parseFloat(bill.total);
@@ -421,7 +422,7 @@ domReady(function () {
 
         const lowStockList = document.getElementById('low-stock-items');
         lowStockList.innerHTML = '';
-        Object.entries(inventory).filter(([_, item]) => item.quantity <= 2).forEach(([barcode, item]) => {
+        Object.entries(inventory).filter(([_, item]) => item.quantity <= 5).forEach(([barcode, item]) => {
             const li = document.createElement('li');
             li.textContent = `${item.name} (${item.quantity} left)`;
             lowStockList.appendChild(li);
