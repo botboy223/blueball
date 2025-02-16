@@ -42,27 +42,26 @@ domReady(function () {
         }
     });
 
-    // Scanner for Option 2 (Cart)
+   // Scanner for Option 2 (Cart)
     const html5QrcodeScannerOption2 = new Html5QrcodeScanner(
         "my-qr-reader-option2",
         { fps: 30, qrbox: { width: 250, height: 250 } }
     );
     let lastScannedCode = '';  // To keep track of the last scanned code
-    
+
     html5QrcodeScannerOption2.render((decodeText) => {
         if (decodeText !== lastScannedCode && productDetails[decodeText]) {
             lastScannedCode = decodeText; // Update the last scanned code
             const existingItem = cart.find(item => item.code === decodeText);
             if (!existingItem) {
                 if (inventory[decodeText].quantity > 0) {
-                    // Add the item with a quantity of 1 by default
-                    cart.push({ code: decodeText, quantity: 1 });
+                    cart.push({ code: decodeText, quantity: 1 }); // Start with a quantity of 1
                     displayCart();
                 } else {
                     alert(`Out of stock for product ${inventory[decodeText].name}!`);
                 }
             } else {
-                // If the item exists, do not automatically increase the quantity
+                // If the item exists, do not increase the quantity automatically
                 displayCart();
             }
         } else if (decodeText !== lastScannedCode) {
@@ -85,11 +84,11 @@ domReady(function () {
                 <span class="product-name">${product?.name || 'Unknown Product'}</span>
                 <span class="product-price">Rs. ${product?.price?.toFixed(2) || '0.00'}</span>
                 <input type="number" 
-                       value="${item.quantity}" 
+                       value="1"  // Default to 1, not item.quantity
                        min="1" 
                        data-index="${index}"
                        class="quantity-input">
-                <span class="item-total">Rs. ${(product?.price * item.quantity).toFixed(2) || '0.00'}</span>
+                <span class="item-total">Rs. ${(product?.price * 1).toFixed(2) || '0.00'}</span>
             `;
             cartDiv.appendChild(itemDiv);
         });
