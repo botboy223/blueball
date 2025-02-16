@@ -17,7 +17,7 @@ body {
     border-radius: 8px;
     text-align: center;
     width: 100%;
-    position: relative; /* To ensure z-index works correctly */
+    position: relative;
 }
 
 .element {
@@ -79,15 +79,15 @@ button:hover {
 }
 
 .button-group {
-    position: relative; /* Ensure button group doesn't interfere with button z-index */
+    position: relative;
 }
 
 #moreButton {
     display: block;
     visibility: visible;
     cursor: pointer;
-    z-index: 10; /* Higher than other elements if necessary */
-    position: relative; /* To make sure z-index is effective */
-    padding: 10px 20px; /* Adjust for better click area */
-    font-size: 16px; /* For better visibility */
+    z-index: 10;
+    position: relative;
+    padding: 10px 20px;
+    font-size: 16px;
 }
