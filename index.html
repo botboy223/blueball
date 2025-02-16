@@ -10,11 +10,10 @@
     <div class="container">
         <h1>QR Code Scanner</h1>
         <div class="button-group">
-            <button id="moreButton" onclick="showMoreOptions()">More</button>
+            <button id="moreButton">More</button>
         </div>
 
         <div id="moreOptions" class="hidden">
-            <button id="moreButton">More</button>
             <button id="option1-button">Set Barcode Values</button>
             <button id="option2-button">Add to Cart</button>
             <button id="option3-button">UPI QR Code</button>
@@ -91,6 +90,7 @@
         <div id="inventory-option" class="option hidden">
             <h2>Inventory</h2>
             <div id="inventory-list"></div>
+            <button id="save-inventory" style="display: none;">Save</button>
         </div>
     </div>
 
@@ -98,6 +98,5 @@
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdn.jsdelivr.net/npm/qr-code-styling/lib/qr-code-styling.js"></script>
     <script src="inventory.js"></script>
-    <script src="script.js"></script>
 </body>
 </html>
