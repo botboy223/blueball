@@ -34,9 +34,11 @@ domReady(function () {
         if (productDetails[decodeText]) {
             document.getElementById('product-name').value = productDetails[decodeText].name;
             document.getElementById('product-price').value = productDetails[decodeText].price;
+            document.getElementById('product-quantity').value = inventory[decodeText]?.quantity || 0;
         } else {
             document.getElementById('product-name').value = '';
             document.getElementById('product-price').value = '';
+            document.getElementById('product-quantity').value = '';
         }
     });
 
@@ -49,13 +51,21 @@ domReady(function () {
         if (productDetails[decodeText]) {
             const existingItem = cart.find(item => item.code === decodeText);
             if (!existingItem) {
-                cart.push({ code: decodeText, quantity: 1 });
-                updateInventory(decodeText, 1);
-                displayCart();
+                if (inventory[decodeText].quantity > 0) { // Check if there's stock
+                    cart.push({ code: decodeText, quantity: 1 });
+                    updateInventory(decodeText, 1);
+                    displayCart();
+                } else {
+                    alert(`Out of stock for product ${inventory[decodeText].name}!`);
+                }
             } else {
-                existingItem.quantity++;
-                updateInventory(decodeText, 1);
-                displayCart();
+                if (inventory[decodeText].quantity >= existingItem.quantity + 1) { // Check if adding more won't exceed stock
+                    existingItem.quantity++;
+                    updateInventory(decodeText, 1);
+                    displayCart();
+                } else {
+                    alert(`Cannot add more. Only ${inventory[decodeText].quantity} left in stock for ${inventory[decodeText].name}.`);
+                }
             }
         } else {
             alert(`Product ${decodeText} not found!`);
@@ -98,9 +108,13 @@ domReady(function () {
         if (e.target.classList.contains('quantity-input')) {
             const index = e.target.dataset.index;
             const newQty = parseInt(e.target.value);
-            if (!isNaN(newQty) && newQty > 0) {
+            const productCode = cart[index].code;
+            if (!isNaN(newQty) && newQty > 0 && newQty <= inventory[productCode].quantity) {
                 cart[index].quantity = newQty;
                 displayCart();
+            } else {
+                alert(`Quantity must be between 1 and available stock (${inventory[productCode].quantity}).`);
+                e.target.value = cart[index].quantity; // Reset to previous value
             }
         }
     });
@@ -109,7 +123,7 @@ domReady(function () {
         const barcode = document.getElementById('barcode').value.trim();
         const name = document.getElementById('product-name').value.trim();
         const price = parseFloat(document.getElementById('product-price').value);
-        const quantity = 0;
+        const quantity = parseInt(document.getElementById('product-quantity').value) || 0;
 
         if (barcode && name && !isNaN(price) && price > 0) {
             productDetails[barcode] = { name, price };
@@ -330,6 +344,7 @@ domReady(function () {
                 <span>${data.name}</span>
                 <span>Price: Rs. ${data.price.toFixed(2)}</span>
                 <span>Quantity: <input type="number" value="${data.quantity}" data-barcode="${barcode}" class="edit-quantity"></span>
+                <button data-barcode="${barcode}" class="edit-product">Edit</button>
             `;
             inventoryList.appendChild(item);
         }
@@ -338,7 +353,27 @@ domReady(function () {
         document.querySelectorAll('.edit-quantity').forEach(input => {
             input.addEventListener('change', function() {
                 const barcode = this.getAttribute('data-barcode');
-                inventory[barcode].quantity = parseInt(this.value);
+                const newQuantity = parseInt(this.value);
+                if (newQuantity >= 0) { // Ensure quantity isn't negative
+                    inventory[barcode].quantity = newQuantity;
+                    document.getElementById('save-inventory').style.display = 'block'; // Show save button
+                } else {
+                    alert('Quantity cannot be negative!');
+                    this.value = inventory[barcode].quantity; // Reset to previous value
+                }
+            });
+        });
+
+        // Event listener for editing product details
+        document.querySelectorAll('.edit-product').forEach(button => {
+            button.addEventListener('click', function() {
+                const barcode = this.getAttribute('data-barcode');
+                const product = inventory[barcode];
+                document.getElementById('barcode').value = barcode;
+                document.getElementById('product-name').value = product.name;
+                document.getElementById('product-price').value = product.price;
+                document.getElementById('product-quantity').value = product.quantity;
+                switchToOption1(); // Switch to Set Barcode Values to allow editing
                 document.getElementById('save-inventory').style.display = 'block'; // Show save button
             });
         });
@@ -348,6 +383,7 @@ domReady(function () {
             saveToLocalStorage('inventory', inventory);
             this.style.display = 'none'; // Hide save button after saving
             alert('Inventory saved!');
+            switchToInventory(); // Refresh inventory view
         });
     }
 
