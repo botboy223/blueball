@@ -18,8 +18,8 @@ body {
     text-align: center;
     width: 100%;
     position: relative;
-    height: 90vh; /* Adjust based on how much vertical space you want for content */
-    overflow-y: auto; /* Add this if you want scrolling within the container */
+    height: 90vh;
+    overflow-y: auto;
 }
 
 .element {
@@ -66,6 +66,43 @@ button:hover {
     button {
         width: 100%;
     }
+
+    /* For mobile, ensure buttons stay visible after click */
+    .button-group {
+        position: sticky;
+        top: 0; /* Stick to the top of the viewport */
+        z-index: 20; /* Higher z-index to ensure it stays on top */
+        background-color: white; /* Match with container's background */
+    }
+
+    #moreButton {
+        display: block;
+        visibility: visible;
+        cursor: pointer;
+        padding: 10px 20px;
+        font-size: 16px;
+    }
+
+    #moreOptions {
+        position: absolute; /* Position relative to button-group */
+        top: 100%; /* Position directly below the More button */
+        left: 0;
+        width: 100%;
+        z-index: 15; /* Lower than the button but still above other content */
+        background-color: #ffffff;
+        border: 1px solid #ccc;
+        border-radius: 0 0 5px 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Prevent immediate collapse on touch devices */
+    #moreOptions.hidden {
+        display: none;
+    }
+
+    #moreOptions:not(.hidden) {
+        display: block;
+    }
 }
 
 .option {
@@ -80,22 +117,8 @@ button:hover {
     margin-bottom: 20px;
 }
 
-.button-group {
-    position: relative;
-}
-
-#moreButton {
-    display: block;
-    visibility: visible;
-    cursor: pointer;
-    z-index: 10;
-    position: relative;
-    padding: 10px 20px;
-    font-size: 16px;
-}
-
 #bill-history {
-    max-height: 400px; /* or adjust to your needs */
+    max-height: 400px;
     overflow-y: auto;
     padding: 10px;
     border: 1px solid #ddd;
