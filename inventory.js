@@ -475,6 +475,7 @@ domReady(function () {
 
     function switchToInventory() {
         switchToOption('inventory-option');
+        displayInventory();
     }
 
     let moreButton = document.getElementById('moreButton');
