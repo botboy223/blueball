@@ -10,7 +10,7 @@ body {
 }
 
 .container {
-    max-width: 600px;
+    max-width: 800px;
     background-color: #ffffff;
     padding: 30px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -65,114 +65,14 @@ button:hover {
     }
 }
 
-.printable-bill {
+.option {
     display: none;
-    padding: 20px;
-    background-color: #fff;
-    border: 1px solid #ccc;
-    margin: 20px auto;
-    max-width: 600px;
-}
-
-@media print {
-    body * {
-        visibility: hidden;
-    }
-    .printable-bill, .printable-bill * {
-        visibility: visible;
-    }
-    .printable-bill {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-    }
 }
 
 .hidden {
     display: none;
 }
 
-.inventory-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px;
-    border-bottom: 1px solid #eee;
-}
-
-.inventory-item span {
-    flex: 1;
-    text-align: left;
-    margin: 0 10px;
-}
-
-#add-stock-form {
-    margin-top: 20px;
-    padding: 15px;
-    background: #f5f5f5;
-    border-radius: 8px;
-}
-
-#add-stock-form input {
-    margin: 5px 0;
-    padding: 8px;
-    width: 200px;
-}
-
-.cart-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 10px 0;
-    padding: 10px;
-    border-bottom: 1px solid #eee;
-}
-
-.quantity-input {
-    width: 60px;
-    margin: 0 10px;
-}
-#stock-scanner-container {
-    width: 300px;
-    height: 300px;
-    margin: 20px auto;
-    border: 2px dashed #ccc;
-}
-/* Inventory Management Styles */
-#stock-scanner-container {
-    width: 300px;
-    height: 300px;
-    margin: 20px auto;
-    border: 2px dashed #ccc;
-}
-
-.inventory-item {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr;
-    gap: 15px;
-    padding: 12px;
-    border-bottom: 1px solid #eee;
-    align-items: center;
-}
-
-#add-stock-form {
-    margin-top: 20px;
-    padding: 20px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-#add-stock-form input {
-    display: block;
-    width: 100%;
-    margin: 10px 0;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-#add-stock-form button {
-    margin-top: 15px;
-    background-color: #28a745;
+.dashboard {
+    margin-bottom: 20px;
 }
