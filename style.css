@@ -5,7 +5,7 @@ body {
     padding: 0;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: start;
     height: 100vh;
 }
 
@@ -17,7 +17,8 @@ body {
     border-radius: 8px;
     text-align: center;
     width: 100%;
-    position: relative;
+    height: calc(100vh - 60px); /* Adjust based on your header/footer if any */
+    overflow-y: auto;
 }
 
 .element {
@@ -68,6 +69,7 @@ button:hover {
 
 .option {
     display: none;
+    margin-top: 20px; /* Space from the More button */
 }
 
 .hidden {
@@ -79,7 +81,7 @@ button:hover {
 }
 
 .button-group {
-    position: relative;
+    margin-bottom: 20px;
 }
 
 #moreButton {
@@ -92,6 +94,37 @@ button:hover {
     font-size: 16px;
 }
 
+#moreOptions {
+    position: relative; /* Fixed for mobile, relative for desktop */
+}
+
+.dashboard {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    text-align: left;
+}
+
+.dashboard h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.dashboard p {
+    margin: 5px 0;
+}
+
+.dashboard ul {
+    padding-left: 20px;
+    margin: 0;
+}
+
+.dashboard li {
+    margin-bottom: 5px;
+}
+
 #bill-history {
     max-height: 400px;
     overflow-y: auto;
@@ -102,4 +135,12 @@ button:hover {
 
 .bill-entry {
     margin-bottom: 10px;
+}
+
+/* Ensure More button is always clickable */
+.option::after {
+    content: '';
+    display: block;
+    height: 50px; /* Height of the More button */
+    pointer-events: none; /* Allows click through */
 }
