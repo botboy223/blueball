@@ -430,10 +430,12 @@ domReady(function () {
     
         // Remove any existing click listeners to avoid duplication
         document.body.removeEventListener('click', hideOptions);
+        document.body.removeEventListener('touchstart', hideOptions);
 
         // Add new listener to hide options when clicking outside
         setTimeout(() => {
             document.body.addEventListener('click', hideOptions);
+            document.body.addEventListener('touchstart', hideOptions);
         }, 10); // Small delay to prevent immediate closing
     }
 
@@ -442,6 +444,7 @@ domReady(function () {
         if (moreOptions && !moreOptions.contains(e.target) && e.target !== moreButton) {
             moreOptions.classList.add('hidden');
             document.body.removeEventListener('click', hideOptions);
+            document.body.removeEventListener('touchstart', hideOptions);
         }
     }
 
@@ -488,18 +491,18 @@ domReady(function () {
             moreButton.removeEventListener(event, showMoreOptions);
         });
 
-        // Add touchstart first to handle mobile, then click for desktop
+        // Add event listeners
         moreButton.addEventListener('touchstart', function(e) {
-            e.stopPropagation(); // Stop propagation to prevent immediate closing
-            e.preventDefault(); // Prevent default action
+            e.stopPropagation();
+            e.preventDefault();
             showMoreOptions();
         });
+
         moreButton.addEventListener('click', showMoreOptions);
     }
 
     // Add click listeners for the other options buttons
     document.getElementById('option1-button').addEventListener('click', switchToOption1);
-    document.getElementById('option2-button').addEventListener('click', switchToOption2);
     document.getElementById('option3-button').addEventListener('click', switchToOption3);
     document.getElementById('option4-button').addEventListener('click', switchToOption4);
     document.getElementById('option5-button').addEventListener('click', switchToOption5);
