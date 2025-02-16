@@ -52,18 +52,13 @@ domReady(function () {
             const existingItem = cart.find(item => item.code === decodeText);
             if (!existingItem) {
                 if (inventory[decodeText].quantity > 0) {
-                    cart.push({ code: decodeText, quantity: 1 });
+                    cart.push({ code: decodeText, quantity: 1 }); // Start with a quantity of 1
                     displayCart();
                 } else {
                     alert(`Out of stock for product ${inventory[decodeText].name}!`);
                 }
             } else {
-                if (inventory[decodeText].quantity >= existingItem.quantity + 1) {
-                    existingItem.quantity++;
-                    displayCart();
-                } else {
-                    alert(`Cannot add more. Only ${inventory[decodeText].quantity} left in stock for ${inventory[decodeText].name}.`);
-                }
+                displayCart(); // If the item exists, just show the cart, allowing manual quantity adjustment
             }
         } else {
             alert(`Product ${decodeText} not found!`);
