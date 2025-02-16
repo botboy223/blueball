@@ -109,12 +109,27 @@ domReady(function () {
             const index = e.target.dataset.index;
             const newQty = parseInt(e.target.value);
             const productCode = cart[index].code;
-            if (!isNaN(newQty) && newQty > 0 && newQty <= inventory[productCode].quantity) {
+            const oldQty = cart[index].quantity;
+            
+            if (!isNaN(newQty) && newQty > 0) {
+                // Restore inventory for the difference if quantity is reduced
+                if (newQty < oldQty) {
+                    updateInventory(productCode, oldQty - newQty);
+                } else if (newQty > oldQty) {
+                    // Check if there's enough stock before increasing quantity
+                    if (inventory[productCode].quantity >= newQty - oldQty) {
+                        updateInventory(productCode, newQty - oldQty);
+                    } else {
+                        alert(`Not enough stock. Only ${inventory[productCode].quantity} left.`);
+                        e.target.value = oldQty; // Reset to previous value
+                        return;
+                    }
+                }
                 cart[index].quantity = newQty;
                 displayCart();
             } else {
-                alert(`Quantity must be between 1 and available stock (${inventory[productCode].quantity}).`);
-                e.target.value = cart[index].quantity; // Reset to previous value
+                alert('Quantity must be a positive number.');
+                e.target.value = oldQty; // Reset to previous value
             }
         }
     });
@@ -330,7 +345,10 @@ domReady(function () {
     // Inventory Management
     function updateInventory(barcode, quantityChange) {
         if (inventory[barcode]) {
-            inventory[barcode].quantity = Math.max(0, inventory[barcode].quantity - quantityChange);
+            inventory[barcode].quantity -= quantityChange;
+            if (inventory[barcode].quantity < 0) {
+                inventory[barcode].quantity = 0; // Ensure no negative stock
+            }
             saveToLocalStorage('inventory', inventory);
         }
     }
