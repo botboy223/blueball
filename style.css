@@ -76,3 +76,11 @@ button:hover {
 .dashboard {
     margin-bottom: 20px;
 }
+
+#moreButton {
+    display: inline-block;
+    visibility: visible;
+    cursor: pointer;
+    z-index: 2;
+    position: relative;
+}
