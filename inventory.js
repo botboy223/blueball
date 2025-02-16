@@ -251,6 +251,8 @@ domReady(function () {
             // Clear cart
             cart = [];
             displayCart();
+
+            // Update dashboard after generating bill
             updateDashboard();
 
             // Open PDF
@@ -408,6 +410,9 @@ domReady(function () {
         const today = new Date().toDateString();
         let todaySales = 0;
         let totalSales = 0;
+
+        // Fetch bill history from localStorage if it's not already loaded
+        let billHistory = loadFromLocalStorage('billHistory') || [];
 
         billHistory.forEach(bill => {
             const billDate = new Date(bill.date).toDateString();
