@@ -427,7 +427,7 @@ domReady(function () {
     function showMoreOptions() {
         const moreOptions = document.getElementById('moreOptions');
         moreOptions.classList.toggle('hidden');
-    
+
         // Remove any existing click listeners to avoid duplication
         document.body.removeEventListener('click', hideOptions);
         document.body.removeEventListener('touchstart', hideOptions);
@@ -443,55 +443,46 @@ domReady(function () {
         const moreOptions = document.getElementById('moreOptions');
         if (moreOptions && !moreOptions.contains(e.target) && e.target !== moreButton) {
             moreOptions.classList.add('hidden');
-            document.body.removeEventListener('click', hideOptions);
-            document.body.removeEventListener('touchstart', hideOptions);
         }
     }
 
+    function switchToOption(optionId) {
+        document.querySelectorAll('.option').forEach(option => option.style.display = 'none');
+        document.getElementById('dashboard').style.display = 'block'; // Show dashboard by default
+        document.getElementById(optionId).style.display = 'block';
+        document.getElementById('moreOptions').classList.add('hidden'); // Hide options when switching
+    }
+
     function switchToOption1() {
-        hideAllOptions();
-        document.getElementById('option1').style.display = 'block';
+        switchToOption('option1');
     }
 
     function switchToOption2() {
-        hideAllOptions();
-        document.getElementById('option2').style.display = 'block';
+        switchToOption('option2');
     }
 
     function switchToOption3() {
-        hideAllOptions();
-        document.getElementById('option3').style.display = 'block';
+        switchToOption('option3');
     }
 
     function switchToOption4() {
-        hideAllOptions();
-        document.getElementById('option4').style.display = 'block';
+        switchToOption('option4');
     }
 
     function switchToOption5() {
-        hideAllOptions();
-        document.getElementById('option5').style.display = 'block';
+        switchToOption('option5');
     }
 
     function switchToInventory() {
-        hideAllOptions();
-        document.getElementById('inventory-option').style.display = 'block';
-        displayInventory();
-    }
-
-    function hideAllOptions() {
-        document.querySelectorAll('.option').forEach(option => option.style.display = 'none');
-        document.getElementById('dashboard').classList.remove('hidden');
+        switchToOption('inventory-option');
     }
 
     let moreButton = document.getElementById('moreButton');
     if (moreButton) {
-        // Ensure all previous event listeners are removed
         ['click', 'touchstart'].forEach(event => {
             moreButton.removeEventListener(event, showMoreOptions);
         });
 
-        // Add event listeners
         moreButton.addEventListener('touchstart', function(e) {
             e.stopPropagation();
             e.preventDefault();
@@ -503,6 +494,7 @@ domReady(function () {
 
     // Add click listeners for the other options buttons
     document.getElementById('option1-button').addEventListener('click', switchToOption1);
+    document.getElementById('option2-button').addEventListener('click', switchToOption2);
     document.getElementById('option3-button').addEventListener('click', switchToOption3);
     document.getElementById('option4-button').addEventListener('click', switchToOption4);
     document.getElementById('option5-button').addEventListener('click', switchToOption5);
