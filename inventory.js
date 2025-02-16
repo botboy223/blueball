@@ -47,8 +47,11 @@ domReady(function () {
         "my-qr-reader-option2",
         { fps: 30, qrbox: { width: 250, height: 250 } }
     );
+    let lastScannedCode = '';  // To keep track of the last scanned code
+
     html5QrcodeScannerOption2.render((decodeText) => {
-        if (productDetails[decodeText]) {
+        if (decodeText !== lastScannedCode && productDetails[decodeText]) {
+            lastScannedCode = decodeText; // Update the last scanned code
             const existingItem = cart.find(item => item.code === decodeText);
             if (!existingItem) {
                 if (inventory[decodeText].quantity > 0) {
@@ -58,11 +61,16 @@ domReady(function () {
                     alert(`Out of stock for product ${inventory[decodeText].name}!`);
                 }
             } else {
-                displayCart(); // If the item exists, just show the cart, allowing manual quantity adjustment
+                // If the item exists, do not increase the quantity automatically
+                displayCart();
             }
-        } else {
+        } else if (decodeText !== lastScannedCode) {
+            // If the product is not found in the productDetails, alert the user
             alert(`Product ${decodeText} not found!`);
         }
+        // Stop scanning after each successful scan
+        html5QrcodeScannerOption2.clear();
+        html5QrcodeScannerOption2.stop();
     });
 
     // Cart Display
@@ -435,6 +443,8 @@ domReady(function () {
     function switchToOption2() {
         hideAllOptions();
         document.getElementById('option2').style.display = 'block';
+        // Ensure the scanner restarts when switching to this option
+        html5QrcodeScannerOption2.start();
     }
 
     function switchToOption3() {
@@ -477,6 +487,11 @@ domReady(function () {
     document.getElementById('option4-button').addEventListener('click', switchToOption4);
     document.getElementById('option5-button').addEventListener('click', switchToOption5);
     document.getElementById('inventory-button').addEventListener('click', switchToInventory);
+
+    // Add this event listener for restarting the scan
+    document.getElementById('restart-scan').addEventListener('click', () => {
+        html5QrcodeScannerOption2.start();
+    });
 
     // Initial setup
     switchToOption2(); // Default to cart view
