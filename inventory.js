@@ -81,13 +81,17 @@ domReady(function () {
                 <span class="product-name">${product?.name || 'Unknown Product'}</span>
                 <span class="product-price">Rs. ${product?.price?.toFixed(2) || '0.00'}</span>
                 <input type="number" 
-                       value="1"  // Default to 1, not item.quantity
+                       value="1"  // Default to 1 for display, but cart will have actual quantity
                        min="1" 
                        data-index="${index}"
                        class="quantity-input">
-                <span class="item-total">Rs. ${(product?.price * 1).toFixed(2) || '0.00'}</span>
+                <span class="item-total">Rs. ${(product?.price * item.quantity).toFixed(2) || '0.00'}</span>
             `;
             cartDiv.appendChild(itemDiv);
+            
+            // After appending, set the actual quantity from cart
+            const quantityInput = itemDiv.querySelector('.quantity-input');
+            quantityInput.value = item.quantity;
         });
         calculateTotal();
     }
