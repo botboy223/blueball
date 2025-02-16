@@ -434,12 +434,12 @@ domReady(function () {
         // Add new listener to hide options when clicking outside
         setTimeout(() => {
             document.body.addEventListener('click', hideOptions);
-        }, 10); // Small delay to ensure click event doesn't immediately close the menu
+        }, 10); // Small delay to prevent immediate closing
     }
 
     function hideOptions(e) {
         const moreOptions = document.getElementById('moreOptions');
-        if (!moreOptions.contains(e.target) && e.target !== moreButton) {
+        if (moreOptions && !moreOptions.contains(e.target) && e.target !== moreButton) {
             moreOptions.classList.add('hidden');
             document.body.removeEventListener('click', hideOptions);
         }
@@ -483,10 +483,15 @@ domReady(function () {
 
     let moreButton = document.getElementById('moreButton');
     if (moreButton) {
-        moreButton.removeEventListener('click', showMoreOptions);
-        moreButton.removeEventListener('touchstart', showMoreOptions);
+        // Ensure all previous event listeners are removed
+        ['click', 'touchstart'].forEach(event => {
+            moreButton.removeEventListener(event, showMoreOptions);
+        });
+
+        // Add touchstart first to handle mobile, then click for desktop
         moreButton.addEventListener('touchstart', function(e) {
-            e.preventDefault(); // Prevent default action to ensure the event doesn't propagate
+            e.stopPropagation(); // Stop propagation to prevent immediate closing
+            e.preventDefault(); // Prevent default action
             showMoreOptions();
         });
         moreButton.addEventListener('click', showMoreOptions);
