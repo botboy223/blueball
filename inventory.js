@@ -41,14 +41,13 @@ domReady(function () {
             document.getElementById('product-quantity').value = '';
         }
     });
-
-   // Scanner for Option 2 (Cart)
+    // Scanner for Option 2 (Cart)
     const html5QrcodeScannerOption2 = new Html5QrcodeScanner(
         "my-qr-reader-option2",
         { fps: 30, qrbox: { width: 250, height: 250 } }
     );
     let lastScannedCode = '';  // To keep track of the last scanned code
-
+    
     html5QrcodeScannerOption2.render((decodeText) => {
         if (decodeText !== lastScannedCode && productDetails[decodeText]) {
             lastScannedCode = decodeText; // Update the last scanned code
@@ -68,9 +67,7 @@ domReady(function () {
             // If the product is not found in the productDetails, alert the user
             alert(`Product ${decodeText} not found!`);
         }
-        // Stop scanning after each successful scan
-        html5QrcodeScannerOption2.clear();
-        html5QrcodeScannerOption2.stop();
+        // Do not stop or clear the scanner after each scan
     });
     
     function displayCart() {
