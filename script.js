@@ -371,6 +371,7 @@ domReady(function () {
 
     // Show/Hide Options
     function showMoreOptions() {
+        console.log("More button clicked!"); // For debugging
         document.getElementById('moreOptions').classList.toggle('hidden');
         updateDashboard();
     }
@@ -410,6 +411,9 @@ domReady(function () {
         document.querySelectorAll('.option').forEach(option => option.style.display = 'none');
         document.getElementById('dashboard').classList.remove('hidden');
     }
+
+    // Additional event listener for better mobile support
+    document.getElementById('moreButton').addEventListener('touchstart', showMoreOptions);
 
     // Initial setup
     switchToOption2(); // Default to cart view
