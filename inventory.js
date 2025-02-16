@@ -316,8 +316,7 @@ domReady(function () {
     // Inventory Management
     function updateInventory(barcode, quantityChange) {
         if (inventory[barcode]) {
-            inventory[barcode].quantity -= quantityChange;
-            if (inventory[barcode].quantity < 0) inventory[barcode].quantity = 0; // Ensure no negative stock
+            inventory[barcode].quantity = Math.max(0, inventory[barcode].quantity - quantityChange);
             saveToLocalStorage('inventory', inventory);
         }
     }
@@ -335,13 +334,20 @@ domReady(function () {
             inventoryList.appendChild(item);
         }
 
-        // Add event listeners for editing quantity:
+        // Event listeners for editing quantity:
         document.querySelectorAll('.edit-quantity').forEach(input => {
             input.addEventListener('change', function() {
                 const barcode = this.getAttribute('data-barcode');
                 inventory[barcode].quantity = parseInt(this.value);
-                saveToLocalStorage('inventory', inventory);
+                document.getElementById('save-inventory').style.display = 'block'; // Show save button
             });
+        });
+
+        // Save button event listener
+        document.getElementById('save-inventory').addEventListener('click', function() {
+            saveToLocalStorage('inventory', inventory);
+            this.style.display = 'none'; // Hide save button after saving
+            alert('Inventory saved!');
         });
     }
 
@@ -413,8 +419,12 @@ domReady(function () {
     }
 
     // Event listeners for all buttons
-    document.getElementById('moreButton').addEventListener('click', showMoreOptions);
-    document.getElementById('moreButton').addEventListener('touchstart', showMoreOptions);
+    let moreButton = document.getElementById('moreButton');
+    if (moreButton) {
+        moreButton.removeEventListener('click', showMoreOptions); // Remove existing listener if any
+        moreButton.addEventListener('click', showMoreOptions);
+        moreButton.addEventListener('touchstart', showMoreOptions);
+    }
 
     document.getElementById('option1-button').addEventListener('click', switchToOption1);
     document.getElementById('option2-button').addEventListener('click', switchToOption2);
