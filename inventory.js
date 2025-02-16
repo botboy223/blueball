@@ -482,7 +482,6 @@ domReady(function () {
     }
 
     document.getElementById('option1-button').addEventListener('click', switchToOption1);
-    document.getElementById('option2-button').addEventListener('click', switchToOption2);
     document.getElementById('option3-button').addEventListener('click', switchToOption3);
     document.getElementById('option4-button').addEventListener('click', switchToOption4);
     document.getElementById('option5-button').addEventListener('click', switchToOption5);
@@ -494,6 +493,6 @@ domReady(function () {
     });
 
     // Initial setup
-    switchToOption2(); // Default to cart view
+    document.getElementById('option2').style.display = 'block'; // Show add to cart by default
     updateDashboard();
 });
