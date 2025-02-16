@@ -9,22 +9,12 @@ function domReady(fn) {
 window.jsPDF = window.jspdf.jsPDF;
 
 function saveToLocalStorage(key, value) {
-    try {
-        localStorage.setItem(key, JSON.stringify(value));
-    } catch (e) {
-        console.error('Failed to save to localStorage:', e);
-        alert('Failed to save data. Please check your storage settings.');
-    }
+    localStorage.setItem(key, JSON.stringify(value));
 }
 
 function loadFromLocalStorage(key) {
-    try {
-        const value = localStorage.getItem(key);
-        return value ? JSON.parse(value) : null;
-    } catch (e) {
-        console.error('Failed to load from localStorage:', e);
-        return null;
-    }
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : null;
 }
 
 domReady(function () {
@@ -37,11 +27,7 @@ domReady(function () {
     // Scanner for Option 1 (Product Setup)
     const html5QrcodeScannerOption1 = new Html5QrcodeScanner(
         "my-qr-reader-option1",
-        { 
-            fps: 30, 
-            qrbox: { width: 250, height: 250 },
-            formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]
-        }
+        { fps: 30, qrbox: { width: 250, height: 250 } }
     );
     html5QrcodeScannerOption1.render((decodeText) => {
         document.getElementById('barcode').value = decodeText;
@@ -54,32 +40,25 @@ domReady(function () {
             document.getElementById('product-price').value = '';
             document.getElementById('product-quantity').value = '';
         }
-    }, (error) => {
-        console.error('QR Code Scanner Error:', error);
-        alert('Failed to scan QR code. Please ensure the QR code is clear and well-lit. If the issue persists, try refreshing the page or use another QR code.');
     });
 
     // Scanner for Option 2 (Cart)
     const html5QrcodeScannerOption2 = new Html5QrcodeScanner(
         "my-qr-reader-option2",
-        { 
-            fps: 30, 
-            qrbox: { width: 250, height: 250 },
-            formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]
-        }
+        { fps: 30, qrbox: { width: 250, height: 250 } }
     );
     html5QrcodeScannerOption2.render((decodeText) => {
         if (productDetails[decodeText]) {
             const existingItem = cart.find(item => item.code === decodeText);
             if (!existingItem) {
-                if (inventory[decodeText].quantity > 0) { // Check if there's stock
-                    cart.push({ code: decodeText, quantity: 1 }); // Start with a quantity of 1
+                if (inventory[decodeText].quantity > 0) {
+                    cart.push({ code: decodeText, quantity: 1 });
                     displayCart();
                 } else {
                     alert(`Out of stock for product ${inventory[decodeText].name}!`);
                 }
             } else {
-                if (inventory[decodeText].quantity >= existingItem.quantity + 1) { // Check if adding more won't exceed stock
+                if (inventory[decodeText].quantity >= existingItem.quantity + 1) {
                     existingItem.quantity++;
                     displayCart();
                 } else {
@@ -89,9 +68,6 @@ domReady(function () {
         } else {
             alert(`Product ${decodeText} not found!`);
         }
-    }, (error) => {
-        console.error('QR Code Scanner Error:', error);
-        alert('Failed to scan QR code for adding to cart. Please ensure the QR code is clear and well-lit. If the issue persists, try refreshing the page or use another QR code.');
     });
 
     // Cart Display
@@ -129,7 +105,7 @@ domReady(function () {
     document.getElementById('cart').addEventListener('input', (e) => {
         if (e.target.classList.contains('quantity-input')) {
             const index = e.target.dataset.index;
-            const newQty = e.target.value === '' ? 1 : parseInt(e.target.value); // Default to 1 if empty
+            const newQty = parseInt(e.target.value);
             const productCode = cart[index].code;
             const oldQty = cart[index].quantity;
             
@@ -139,11 +115,13 @@ domReady(function () {
                     displayCart();
                 } else {
                     alert(`Not enough stock. Only ${inventory[productCode].quantity} left.`);
-                    e.target.value = oldQty; // Reset to previous value
+                    e.target.value = oldQty;
                 }
+            } else if (e.target.value === '') {
+                e.target.value = '';
             } else {
                 alert('Quantity must be a positive number.');
-                e.target.value = oldQty; // Reset to previous value
+                e.target.value = oldQty;
             }
         }
     });
@@ -279,7 +257,6 @@ domReady(function () {
         } catch (error) {
             alert(`Error: ${error.message}`);
             console.error(error);
-            // Do not clear cart if there's an error
         }
     });
 
@@ -391,7 +368,7 @@ domReady(function () {
             input.addEventListener('change', function() {
                 const barcode = this.getAttribute('data-barcode');
                 const newQuantity = parseInt(this.value);
-                if (newQuantity >= 0) { // Ensure quantity isn't negative
+                if (newQuantity >= 0) {
                     inventory[barcode].quantity = newQuantity;
                     document.getElementById('save-inventory').style.display = 'block'; // Show save button
                 } else {
@@ -430,7 +407,8 @@ domReady(function () {
         let totalSales = 0;
 
         billHistory.forEach(bill => {
-            if (new Date(bill.date).toDateString() === today) {
+            const billDate = new Date(bill.date).toDateString();
+            if (billDate === today) {
                 todaySales += parseFloat(bill.total);
             }
             totalSales += parseFloat(bill.total);
@@ -450,7 +428,6 @@ domReady(function () {
 
     // Show/Hide Options
     function showMoreOptions() {
-        console.log("More button clicked!");
         document.getElementById('moreOptions').classList.toggle('hidden');
         updateDashboard();
     }
