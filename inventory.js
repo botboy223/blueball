@@ -41,6 +41,7 @@ domReady(function () {
             document.getElementById('product-quantity').value = '';
         }
     });
+
     // Scanner for Option 2 (Cart)
     const html5QrcodeScannerOption2 = new Html5QrcodeScanner(
         "my-qr-reader-option2",
@@ -67,9 +68,9 @@ domReady(function () {
             // If the product is not found in the productDetails, alert the user
             alert(`Product ${decodeText} not found!`);
         }
-        // Do not stop or clear the scanner after each scan
+        // Scanner continues without stopping
     });
-    
+
     function displayCart() {
         const cartDiv = document.getElementById('cart');
         cartDiv.innerHTML = '';
@@ -113,21 +114,18 @@ domReady(function () {
             const oldQty = cart[index].quantity;
             
             if (!isNaN(newQty) && newQty > 0) {
-                // Check if there's enough stock before changing quantity
                 if (inventory[productCode].quantity >= newQty) {
                     cart[index].quantity = newQty;
                     displayCart();
                 } else {
                     alert(`Not enough stock. Only ${inventory[productCode].quantity} left.`);
-                    e.target.value = oldQty; // Reset to previous value
+                    e.target.value = oldQty;
                 }
             } else if (e.target.value === '') {
-                // Allow the field to be empty temporarily for editing
-                e.target.value = ''; // Keep it empty so user can type a new number
+                e.target.value = '';
             } else {
-                // If input is not a positive number or empty, reset to old quantity
                 alert('Quantity must be a positive number.');
-                e.target.value = oldQty; // Reset to previous value
+                e.target.value = oldQty;
             }
         }
     });
@@ -374,7 +372,7 @@ domReady(function () {
             input.addEventListener('change', function() {
                 const barcode = this.getAttribute('data-barcode');
                 const newQuantity = parseInt(this.value);
-                if (newQuantity >= 0) { // Ensure quantity isn't negative
+                if (newQuantity >= 0) {
                     inventory[barcode].quantity = newQuantity;
                     document.getElementById('save-inventory').style.display = 'block'; // Show save button
                 } else {
@@ -424,18 +422,27 @@ domReady(function () {
             lowStockList.appendChild(li);
         });
     }
+
     // Show/Hide Options
     function showMoreOptions() {
         const moreOptions = document.getElementById('moreOptions');
         moreOptions.classList.toggle('hidden');
     
-        // Prevent closing immediately on mobile by stopping propagation
-        document.body.addEventListener('click', function hideOptions(e) {
-            if (!moreOptions.contains(e.target) && e.target !== moreButton) {
-                moreOptions.classList.add('hidden');
-                document.body.removeEventListener('click', hideOptions);
-            }
-        }, { once: true });
+        // Remove any existing click listeners to avoid duplication
+        document.body.removeEventListener('click', hideOptions);
+
+        // Add new listener to hide options when clicking outside
+        setTimeout(() => {
+            document.body.addEventListener('click', hideOptions);
+        }, 10); // Small delay to ensure click event doesn't immediately close the menu
+    }
+
+    function hideOptions(e) {
+        const moreOptions = document.getElementById('moreOptions');
+        if (!moreOptions.contains(e.target) && e.target !== moreButton) {
+            moreOptions.classList.add('hidden');
+            document.body.removeEventListener('click', hideOptions);
+        }
     }
 
     function switchToOption1() {
@@ -476,9 +483,8 @@ domReady(function () {
 
     let moreButton = document.getElementById('moreButton');
     if (moreButton) {
-        // Use 'touchstart' for mobile and 'click' for desktop
-        moreButton.removeEventListener('click', showMoreOptions); 
-        moreButton.removeEventListener('touchstart', showMoreOptions); 
+        moreButton.removeEventListener('click', showMoreOptions);
+        moreButton.removeEventListener('touchstart', showMoreOptions);
         moreButton.addEventListener('touchstart', function(e) {
             e.preventDefault(); // Prevent default action to ensure the event doesn't propagate
             showMoreOptions();
@@ -486,6 +492,7 @@ domReady(function () {
         moreButton.addEventListener('click', showMoreOptions);
     }
 
+    // Add click listeners for the other options buttons
     document.getElementById('option1-button').addEventListener('click', switchToOption1);
     document.getElementById('option2-button').addEventListener('click', switchToOption2);
     document.getElementById('option3-button').addEventListener('click', switchToOption3);
