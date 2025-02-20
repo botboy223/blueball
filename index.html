@@ -3,134 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Chat Bot</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f4f4f4;
-        }
-        #chat-container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        #chat-history {
-            height: 300px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            padding: 10px;
-            margin-bottom: 20px;
-            background: #fafafa;
-        }
-        .message {
-            margin: 5px 0;
-        }
-        .you { color: #2c3e50; font-weight: bold; }
-        .bot { color: #2980b9; }
-        #input-container {
-            display: flex;
-            gap: 10px;
-        }
-        #user-input {
-            flex-grow: 1;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        button {
-            padding: 8px 15px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #2980b9;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
+    <title>QR Code Scanner / Reader</title>
 </head>
 <body>
-    <div id="chat-container">
-        <h1>A Simple Chat Bot</h1>
-        <div id="chat-history"></div>
-        <div id="input-container">
-            <input type="text" id="user-input" placeholder="Type your message...">
-            <button onclick="sendMessage()">Get Instant Answers</button>
+    <div class="container">
+        <h1>QR Code Scanner</h1>
+        <div class="button-group">
+            <button id="moreButton">More</button>
+        </div>
+        <div id="dashboard" class="dashboard">
+            <h3>Dashboard</h3>
+            <p>Total Sales: Rs. <span id="total-sales">0.00</span></p>
+            <p>Low Stock Items:</p>
+            <ul id="low-stock-items"></ul>
+        </div>
+
+        <div id="moreOptions" class="hidden">
+            <button id="option1-button">Set Barcode Values</button>
+            <button id="option2-button">Add to Cart</button>
+            <button id="option3-button">UPI QR Code</button>
+            <button id="option4-button">Import/Export Data</button>
+            <button id="option5-button">Bill History</button>
+            <button id="inventory-button">Inventory</button>
+        </div>
+
+        <div id="option1" class="option">
+            <div id="my-qr-reader-option1"></div>
+            <div class="input-group">
+                <label for="barcode">Barcode:</label>
+                <input type="text" id="barcode" readonly>
+            </div>
+            <div class="input-group">
+                <label for="product-name">Product Name:</label>
+                <input type="text" id="product-name">
+            </div>
+            <div class="input-group">
+                <label for="product-price">Product Price:</label>
+                <input type="number" id="product-price" step="0.01">
+            </div>
+            <div class="input-group">
+                <label for="product-quantity">Quantity:</label>
+                <input type="number" id="product-quantity" min="0">
+            </div>
+            <button id="save-barcode">Save</button>
+        </div>
+
+        <div id="option2" class="option">
+            <div id="my-qr-reader-option2"></div>
+            <h2>Cart</h2>
+            <div id="cart"></div>
+            <div id="total">Total: Rs.0</div>
+            <button id="generate-bill">Generate Bill</button>
+            <div id="bill-qr-code"></div>
+            
+        </div>
+
+        <div id="option3" class="option">
+            <h2>UPI QR Code Generator</h2>
+            <form id="qrForm">
+                <div class="input-group">
+                    <label for="upi_id">UPI ID (e.g., 9545689031@paytm):</label>
+                    <input type="text" id="upi_id" name="upi_id" required>
+                </div>
+                <div class="input-group">
+                    <label for="name">Name (e.g., hello):</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="input-group">
+                    <label for="note">Transaction Note (e.g., note):</label>
+                    <input type="text" id="note" name="note" required>
+                </div>
+                <button type="submit">Save UPI Details</button>
+            </form>
+            <div id="qrCode"></div>
+        </div>
+
+        <div id="option4" class="option">
+            <h2>Import/Export Data</h2>
+            <button id="download-data">Download Data</button>
+            <input type="file" id="upload-data" accept=".json">
+        </div>
+
+        <div id="option5" class="option">
+            <h2>Bill History</h2>
+            <div id="bill-history"></div>
+        </div>
+
+        <div id="inventory-option" class="option">
+            <h2>Inventory</h2>
+            <div id="inventory-list"></div>
+            <button id="save-inventory" style="display: none;">Save</button>
         </div>
     </div>
 
-    <script type="module">
-        // Import the Google Generative AI SDK
-        import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
-
-        // Replace with your actual Google API Key
-        const API_KEY = "AIzaSyCkJdowPuIKSZEQOtjLGZqZY2hd7jM_qpI"; // Replace with your key
-        const genAI = new GoogleGenerativeAI(API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-
-        // Chat history array
-        let chatHistory = [];
-
-        // Function to display chat history
-        function displayChatHistory() {
-            const chatDiv = document.getElementById("chat-history");
-            chatDiv.innerHTML = "";
-            chatHistory.forEach(([role, text]) => {
-                const messageDiv = document.createElement("div");
-                messageDiv.className = "message";
-                messageDiv.innerHTML = `<span class="${role.toLowerCase()}">${role}:</span> ${text}`;
-                chatDiv.appendChild(messageDiv);
-            });
-            // Scroll to the bottom
-            chatDiv.scrollTop = chatDiv.scrollHeight;
-        }
-
-        // Function to get Gemini response
-        async function getGeminiResponse(query) {
-            try {
-                const result = await model.generateContent(query);
-                const response = await result.response.text();
-                return response;
-            } catch (error) {
-                console.error("Error fetching response:", error);
-                return "Sorry, something went wrong!";
-            }
-        }
-
-        // Function to handle sending a message
-        async function sendMessage() {
-            const inputField = document.getElementById("user-input");
-            const query = inputField.value.trim();
-
-            if (query) {
-                // Add user message to chat history
-                chatHistory.push(["You", query]);
-                displayChatHistory();
-
-                // Clear input field
-                inputField.value = "";
-
-                // Get and display bot response
-                const response = await getGeminiResponse(query);
-                chatHistory.push(["Bot", response]);
-                displayChatHistory();
-            }
-        }
-
-        // Allow pressing Enter to send message
-        document.getElementById("user-input").addEventListener("keypress", (e) => {
-            if (e.key === "Enter") {
-                sendMessage();
-            }
-        });
-
-        // Initial display of chat history (empty at start)
-        displayChatHistory();
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qr-code-styling/lib/qr-code-styling.js"></script>
+    <script src="inventory.js"></script>
 </body>
 </html>
