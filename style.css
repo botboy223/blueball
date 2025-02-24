@@ -50,6 +50,7 @@ h2 {
 /* Button Group */
 .button-group {
     margin-bottom: 20px;
+    position: relative;
 }
 
 #moreButton {
@@ -67,6 +68,77 @@ h2 {
 #moreButton:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(29, 53, 87, 0.4);
+}
+
+/* More Options (Enhanced Dropdown) */
+#moreOptions {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 15px;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    position: absolute;
+    top: 60px; /* Positioned below More button */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 250px; /* Wider for better visibility */
+    max-height: 300px; /* Scrollable height */
+    overflow-y: auto; /* Enable scrolling */
+    z-index: 10;
+    border: 1px solid rgba(69, 123, 157, 0.2);
+    transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+/* Scrollbar Styling (macOS-like) */
+#moreOptions::-webkit-scrollbar {
+    width: 8px;
+}
+
+#moreOptions::-webkit-scrollbar-track {
+    background: rgba(240, 248, 255, 0.5);
+    border-radius: 10px;
+}
+
+#moreOptions::-webkit-scrollbar-thumb {
+    background: #457b9d;
+    border-radius: 10px;
+}
+
+#moreOptions::-webkit-scrollbar-thumb:hover {
+    background: #1d3557;
+}
+
+/* Animation for visibility */
+#moreOptions.hidden {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+    pointer-events: none;
+}
+
+#moreOptions:not(.hidden) {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+#moreOptions button {
+    display: block;
+    width: 100%;
+    margin: 8px 0;
+    padding: 12px;
+    font-size: 1.1rem;
+    background: linear-gradient(45deg, #a8dadc, #457b9d);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(69, 123, 157, 0.2);
+}
+
+#moreOptions button:hover {
+    background: linear-gradient(45deg, #457b9d, #1d3557);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(29, 53, 87, 0.3);
 }
 
 /* Dashboard */
@@ -99,40 +171,6 @@ h2 {
     color: #e63946;
     font-size: 0.95rem;
     margin: 5px 0;
-}
-
-/* More Options */
-#moreOptions {
-    background: rgba(255, 255, 255, 0.9);
-    padding: 15px;
-    border-radius: 15px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    position: absolute;
-    z-index: 10;
-    width: 200px;
-}
-
-#moreOptions button {
-    display: block;
-    width: 100%;
-    margin: 10px 0;
-    padding: 10px;
-    font-size: 1rem;
-    background: linear-gradient(45deg, #a8dadc, #457b9d);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background 0.3s, transform 0.2s;
-}
-
-#moreOptions button:hover {
-    background: linear-gradient(45deg, #457b9d, #1d3557);
-    transform: translateY(-2px);
-}
-
-.hidden {
-    display: none;
 }
 
 /* Options */
@@ -322,6 +360,13 @@ button:hover {
         width: 100%;
         padding: 10px;
         font-size: 1rem;
+    }
+
+    #moreOptions {
+        width: 90%;
+        left: 50%;
+        transform: translateX(-50%);
+        top: 50px;
     }
 
     .input-group input {
