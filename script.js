@@ -30,7 +30,7 @@ domReady(function () {
     );
     html5QrcodeScannerOption1.render((decodeText) => {
         document.getElementById('barcode').value = decodeText;
-        const isCustomer = decodeText.startsWith('qrwale');
+        const isCustomer = decodeText.startsWith('qrwale'); // Matches qrwale1, qrwale3, etc.
         const productFields = document.getElementById('product-fields');
         const customerFields = document.getElementById('customer-fields');
         
