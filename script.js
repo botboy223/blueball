@@ -30,7 +30,7 @@ domReady(function () {
     );
     html5QrcodeScannerOption1.render((decodeText) => {
         document.getElementById('barcode').value = decodeText;
-        const isCustomer = decodeText.startsWith('qrwale'); // Matches qrwale1, qrwale3, etc.
+        const isCustomer = decodeText.startsWith('qrwale');
         const productFields = document.getElementById('product-fields');
         const customerFields = document.getElementById('customer-fields');
         
@@ -44,7 +44,7 @@ domReady(function () {
             } else {
                 document.getElementById('customer-name').value = '';
                 document.getElementById('customer-phone').value = '';
-                document.getElementById('customer-discount').value = 2; // Default discount
+                document.getElementById('customer-discount').value = 2;
             }
         } else {
             productFields.style.display = 'block';
@@ -139,24 +139,51 @@ domReady(function () {
     document.getElementById('cart').addEventListener('input', (e) => {
         if (e.target.classList.contains('quantity-input')) {
             const index = e.target.dataset.index;
-            const newQty = parseInt(e.target.value);
+            const newQty = e.target.value === '' ? '' : parseInt(e.target.value);
             const productCode = cart[index].code;
             const oldQty = cart[index].quantity;
-            
+
+            // Allow empty input during typing, validate on blur
+            if (newQty === '') return;
+
             if (!isNaN(newQty) && newQty > 0) {
                 if (inventory[productCode].quantity >= newQty) {
                     cart[index].quantity = newQty;
                     displayCart();
                 } else {
-                    alert(`Only ${inventory[productCode].quantity} left!`);
+                    alert(`Only ${inventory[productCode].quantity} left in stock!`);
                     e.target.value = oldQty;
                 }
             } else {
-                alert('Quantity must be positive!');
+                alert('Quantity must be a positive number!');
                 e.target.value = oldQty;
             }
         }
     });
+
+    // Add blur event to validate after user finishes editing
+    document.getElementById('cart').addEventListener('blur', (e) => {
+        if (e.target.classList.contains('quantity-input')) {
+            const index = e.target.dataset.index;
+            const newQty = e.target.value === '' ? 1 : parseInt(e.target.value); // Default to 1 if empty
+            const productCode = cart[index].code;
+            const oldQty = cart[index].quantity;
+
+            if (!isNaN(newQty) && newQty > 0) {
+                if (inventory[productCode].quantity >= newQty) {
+                    cart[index].quantity = newQty;
+                    displayCart();
+                } else {
+                    alert(`Only ${inventory[productCode].quantity} left in stock!`);
+                    e.target.value = oldQty;
+                }
+            } else {
+                alert('Quantity must be a positive number! Resetting to 1.');
+                cart[index].quantity = 1;
+                displayCart();
+            }
+        }
+    }, true);
 
     document.getElementById('save-barcode').addEventListener('click', () => {
         const barcode = document.getElementById('barcode').value.trim();
@@ -303,7 +330,7 @@ Note: ${note}
         const margin = 1;
         const maxLineWidth = pageWidth - (margin * 2);
         const lineHeight = 4;
-        const qrHeight = 30; // Increased QR code height in mm
+        const qrHeight = 30;
         const contentHeight = calculateContentHeight(cart.filter(item => !productDetails[item.code]?.isCustomer).length) + qrHeight + 5;
 
         const doc = new jsPDF({
@@ -357,10 +384,9 @@ Note: ${note}
         doc.text(`Tot:Rs${totalAmount.toFixed(2)}`, margin, yPos);
         yPos += lineHeight * 2;
 
-        // Generate UPI QR Code
         const upiUrl = `upi://pay?pa=${upiDetails.upiId}&pn=${encodeURIComponent(upiDetails.name)}&am=${totalAmount.toFixed(2)}&cu=INR&tn=${encodeURIComponent(upiDetails.note)}`;
         const qrCode = new QRCodeStyling({
-            width: 150, // Increased size for visibility
+            width: 150,
             height: 150,
             data: upiUrl,
             dotsOptions: { color: "#000", type: "square" },
@@ -370,12 +396,12 @@ Note: ${note}
         const qrContainer = document.getElementById('bill-qr-code');
         qrContainer.innerHTML = '';
         qrCode.append(qrContainer);
-        await new Promise(resolve => setTimeout(resolve, 500)); // Wait for QR code to render
+        await new Promise(resolve => setTimeout(resolve, 500));
         const qrCanvas = qrContainer.querySelector('canvas');
         if (qrCanvas) {
             const qrData = qrCanvas.toDataURL('image/png');
-            const qrWidth = 30; // Increased width in mm (fits 48mm paper)
-            const qrX = (pageWidth - qrWidth) / 2; // Center the QR code
+            const qrWidth = 30;
+            const qrX = (pageWidth - qrWidth) / 2;
             doc.addImage(qrData, 'PNG', qrX, yPos, qrWidth, qrWidth);
         }
 
